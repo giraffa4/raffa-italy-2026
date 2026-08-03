@@ -83,6 +83,20 @@
     color:var(--c-bologna);
     margin-bottom:1.1rem;
   }
+  .edition-tag{
+    display:inline-block;
+    margin-bottom:1.1rem;
+    margin-left:0.8rem;
+    padding:0.15rem 0.6rem;
+    font-family:'Space Mono', monospace;
+    font-size:0.65rem;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--c-tuscany);
+    border:1px solid var(--c-tuscany);
+    border-radius:20px;
+    vertical-align:middle;
+  }
   .hero h1{
     font-size:clamp(2.6rem, 7vw, 5.4rem);
     line-height:0.98;
@@ -255,6 +269,7 @@
   }
   .tag-card h3{font-size:1.5rem; margin-top:0.4rem;}
   .tag-card address{font-style:normal; margin-top:0.6rem; color:var(--ink-soft); font-size:0.95rem; line-height:1.5;}
+  .tag-card address.tag-link{margin-top:0.3rem; font-family:'Space Mono',monospace; font-size:0.78rem; word-break:break-all;}
   .tag-card .tag-divider{border-top:1px dashed var(--line-strong); margin:1rem 0;}
   .tag-card .tag-row{display:flex; justify-content:space-between; gap:1rem; font-size:0.92rem; padding:0.3rem 0;}
   .tag-card .tag-row span:first-child{color:var(--ink-soft); font-family:'Space Mono',monospace; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.06em; padding-top:0.15rem;}
@@ -319,7 +334,7 @@
   .t-row{display:contents;}
   .t-time{
     font-family:'Space Mono', monospace;
-    font-size:0.8rem;
+    font-size:0.78rem;
     color:var(--accent);
     padding:1.1rem 0;
     position:relative;
@@ -542,9 +557,9 @@
 
 <!-- HERO -->
 <section class="hero">
-  <div class="hero-kicker">Impruneta · Bologna · Florence · Rome — Sept 6–13, 2026</div>
+  <div class="hero-kicker">Impruneta · Bologna · Florence · Rome — Sept 6–13, 2026<span class="edition-tag">Revised Arrival-Day + Chianti Dining Edition</span></div>
   <h1>The Raffa<br><em>Experience</em></h1>
-  <p class="hero-tagline">Italy Family Adventure — a family itinerary built around food, history, countryside experiences, and a comfortable pace. Updated edition with confirmed lodging and tours.</p>
+  <p class="hero-tagline">Italy Family Adventure — a family itinerary built around food, history, countryside experiences, and a comfortable pace. Updated edition with confirmed lodging, tours, and dinner reservations.</p>
 
   <div class="route-ticket">
     <span class="route-stop">IAD</span>
@@ -591,12 +606,12 @@
     <div class="glance-cell" style="--cell-accent:var(--c-arrival)">
       <div class="g-date">Sun–Mon, Sept 6–7 — IAD → Impruneta</div>
       <div class="g-base">Overnight Flight &amp; Arrival</div>
-      <div class="g-desc">UA 884 overnight to FCO, train to Florence, rental car, check in 4:00 PM.</div>
+      <div class="g-desc">UA 884 overnight to FCO, train to Florence, rental car, stop near Porta Romana, Piazzale Michelangelo and the Rose Garden if energy permits, check in after 4:00 PM.</div>
     </div>
     <div class="glance-cell" style="--cell-accent:var(--c-tuscany)">
       <div class="g-date">Tue, Sept 8 — Impruneta / Chianti</div>
-      <div class="g-base">Palagina Countryside Day</div>
-      <div class="g-desc">10:00 AM Palagina wine tour, family-friendly countryside afternoon.</div>
+      <div class="g-base">Palagina &amp; Chianti Countryside</div>
+      <div class="g-desc">10:00 AM Palagina wine tour and lunch, then Montefioralle and Greve in Chianti.</div>
     </div>
     <div class="glance-cell" style="--cell-accent:var(--c-bologna)">
       <div class="g-date">Wed, Sept 9 — Bologna Day Trip</div>
@@ -635,7 +650,7 @@
       <div class="tag-loc">Base 1 — Tuscany</div>
       <h3>Impruneta</h3>
       <address>Via delle Sodera, 6<br>50023 Impruneta, Toscana</address>
-      <address>https://www.airbnb.com/rooms/33757934</address>
+      <address class="tag-link">airbnb.com/rooms/33757934</address>
       <div class="tag-divider"></div>
       <div class="tag-row"><span>Check in</span><span>Monday, Sept 7 at 4:00 PM</span></div>
       <div class="tag-row"><span>Check out</span><span>Thursday, Sept 10 by 10:00 AM</span></div>
@@ -673,28 +688,34 @@
     </div>
     <div class="day-head">
       <span class="day-num">01</span>
-      <h2>Overnight Flight, Arrival &amp; Impruneta</h2>
+      <h2>Overnight Flight, Florence Overlook &amp; Impruneta</h2>
     </div>
     <div class="day-sub">Sunday–Monday, September 6–7 <span class="base-pill">Base: Impruneta</span></div>
-    <p style="margin-top:1rem; color:var(--ink-soft); max-width:60ch;">Travel overnight, arrive in Italy, and keep Monday afternoon flexible.</p>
+    <p style="margin-top:1rem; color:var(--ink-soft); max-width:60ch;">Travel overnight, collect the rental car, enjoy a flexible Florence overlook, and settle into Impruneta.</p>
 
     <div class="timeline">
-      <div class="t-row"><div class="t-time">Sun, 3:35 PM</div><div class="t-content"><h4>Arrive at Washington Dulles (IAD)</h4></p></div></div>
+      <div class="t-row"><div class="t-time">Sun, 3:35 PM</div><div class="t-content"><h4>Arrive at Washington Dulles (IAD)</h4><p>Allow time for check-in, bag drop, and security before the international departure.</p></div></div>
       <div class="t-row"><div class="t-time">Sun, 5:35 PM</div><div class="t-content"><h4>Depart Washington Dulles (IAD)</h4><p>United Airlines flight UA 884, overnight nonstop to Rome.</p></div></div>
-      <div class="t-row"><div class="t-time">Mon, 8:15 AM</div><div class="t-content"><h4>Arrive at Rome Fiumicino Airport (FCO)</h4><p>Allow time for immigration, luggage, and the transfer to the rail station.</p></div></div>
-      <div class="t-row"><div class="t-time">Late morning</div><div class="t-content"><h4>Train from Rome/FCO toward Florence</h4><p>Use the airport rail connection and a high-speed train to Florence. Continue to the Florence airport area if that is where the rental car pickup is booked.</p></div></div>
-      <div class="t-row"><div class="t-time">Early afternoon</div><div class="t-content"><h4>Collect the rental car</h4><p>Keep timing flexible because immigration, baggage, and rail connections can vary.</p></div></div>
-      <div class="t-row"><div class="t-time">Monday PM</div><div class="t-content"><h4>Activities to be determined</h4><p>Choose based on arrival timing and energy. Good options include a relaxed Florence lunch and walk, groceries, or going directly toward Impruneta.</p></div></div>
-      <div class="t-row"><div class="t-time">4:00 PM</div><div class="t-content"><h4>Check in at the Impruneta property</h4><p>Via delle Sodera, 6, 50023 Impruneta.</p></div></div>
-      <div class="t-row"><div class="t-time">Evening</div><div class="t-content"><h4>Settle in and have a casual dinner</h4><p>Unpack, enjoy the property, and keep the evening easy after the overnight flight.</p></div></div>
+      <div class="t-row"><div class="t-time">Mon, 8:15 AM</div><div class="t-content"><h4>Arrive at Rome Fiumicino Airport (FCO)</h4><p>Allow time for immigration, luggage, and the walk to the airport rail station.</p></div></div>
+      <div class="t-row"><div class="t-time">Late morning</div><div class="t-content"><h4>Rail transfer to Florence</h4><p>Take the airport train to central Rome, then a high-speed train to Firenze Santa Maria Novella. Continue by T2 tram to the Florence airport rental-car area.</p></div></div>
+      <div class="t-row"><div class="t-time">Early afternoon</div><div class="t-content"><h4>Collect the rental car</h4><p>The plan remains workable if pickup slips to about 2:30 PM. Load luggage, confirm child seats, and drive toward Porta Romana.</p></div></div>
+      <div class="t-row"><div class="t-time">~3:00 PM</div><div class="t-content"><h4>Park at Garage Porta Romana</h4><p>Leave the car and luggage secured in the garage while the family gets food nearby.</p></div></div>
+      <div class="t-row"><div class="t-time">Quick food stop</div><div class="t-content"><h4>Lunch or a snack near Porta Romana</h4><p>If you arrive during lunch service, choose Trattoria da Ruggero, Porta Romana Pizza e Grill, or Trattoria Pandemonio. If it's later, choose a panino, bakery, café, or gelato instead of waiting for dinner service.</p></div></div>
+      <div class="t-row"><div class="t-time">~4:00 PM</div><div class="t-content"><h4>Drive to Piazzale Michelangelo</h4><p>Boboli Gardens is closed because September 7 is the first Monday of the month. Enjoy the panoramic Florence view and family photographs instead. Use only legal parking and follow local traffic restrictions.</p></div></div>
+      <div class="t-row"><div class="t-time">4:15–5:30 PM</div><div class="t-content"><h4>Rose Garden</h4><p>Walk the hillside garden below Piazzale Michelangelo — open space, sculptures, and city views without a timed reservation. Skip this stop and drive directly to Impruneta if the family is exhausted or the weather is poor.</p></div></div>
+      <div class="t-row"><div class="t-time">5:30–6:15 PM</div><div class="t-content"><h4>Drive toward Impruneta</h4><p>Stop for groceries if needed, then continue to Via delle Sodera, 6.</p></div></div>
+      <div class="t-row"><div class="t-time">After 6:00 PM</div><div class="t-content"><h4>Check in and settle into the Airbnb</h4><p>Unpack, enjoy the property, and keep dinner casual after the overnight flight and long transfer day.</p></div></div>
+      <div class="t-row"><div class="t-time">7:00–7:30 PM</div><div class="t-content"><h4>Dinner at Ristoro Bellavista in Impruneta</h4><p>Planned first-night dinner beside Piazza Buondelmonti. Family-friendly Tuscan menu with simple choices for children. Reserve an early table and mention two adults with children ages 3 and 5.</p></div></div>
     </div>
 
     <div class="notes">
       <div class="eyebrow">Arrival-Day Priorities</div>
       <ul>
         <li>Keep train tickets flexible enough to accommodate airport delays.</li>
-        <li>Do not schedule a museum or formal tour.</li>
-        <li>Buy water, snacks, breakfast items, and kid-friendly food before reaching the Airbnb.</li>
+        <li>Boboli Gardens is closed on the first Monday of the month — Piazzale Michelangelo and the Rose Garden are the backup plan.</li>
+        <li>Use only legal, signed parking near Piazzale Michelangelo and follow local traffic restrictions.</li>
+        <li>Skip the Rose Garden and drive straight to Impruneta if energy or weather isn't cooperating.</li>
+        <li>Buy water, snacks, breakfast items, and kid-friendly food before reaching the Airbnb if groceries weren't picked up en route.</li>
       </ul>
     </div>
   </div>
@@ -729,32 +750,28 @@
       <h2>Palagina &amp; the Tuscan Countryside</h2>
     </div>
     <div class="day-sub">Tuesday, September 8 <span class="base-pill">Base: Impruneta</span></div>
-    <p style="margin-top:1rem; color:var(--ink-soft); max-width:60ch;">A relaxed family day centered on a kid-friendly winery and authentic countryside experiences.</p>
+    <p style="margin-top:1rem; color:var(--ink-soft); max-width:60ch;">A relaxed family day centered on a kid-friendly winery, then Montefioralle and Greve in Chianti.</p>
 
     <div class="timeline">
-      <div class="t-row"><div class="t-time">8:00 AM</div><div class="t-content"><h4>Breakfast at the Airbnb</h4><p>Enjoy a slow start and leave enough time for the drive through the countryside.</p></div></div>
-      <div class="t-row"><div class="t-time">9:15 AM</div><div class="t-content"><h4>Depart for Palagina</h4><p>Confirm the exact meeting point and drive time in advance.</p></div></div>
-      <div class="t-row"><div class="t-time">10:00 AM</div><div class="t-content"><h4>Palagina wine tour</h4><p>Family-friendly winery experience centered on the vineyard, wine, olive oil, and the estate. Confirm the final duration and whether lunch is included.</p></div></div>
-      <div class="t-row"><div class="t-time">After tour</div><div class="t-content"><h4>Lunch at or near Palagina</h4><p>Keep the meal unhurried and let the children reset before any afternoon activity.</p></div></div>
-      <div class="t-row"><div class="t-time">Afternoon</div><div class="t-content"><h4>Flexible countryside activity</h4><p>Choose Impruneta, a short terracotta experience, Greve, Montefioralle, or simply enjoy the property depending on energy and weather.</p></div></div>
-      <div class="t-row"><div class="t-time">5:30 PM</div><div class="t-content"><h4>Scenic aperitivo or gelato stop</h4><p>Finish in a village square or at a scenic viewpoint rather than adding another formal attraction.</p></div></div>
-      <div class="t-row"><div class="t-time">6:30–7:00 PM</div><div class="t-content"><h4>Return to Impruneta</h4><p>Dinner near the Airbnb or cook at the villa.</p></div></div>
+      <div class="t-row"><div class="t-time">8:00 AM</div><div class="t-content"><h4>Breakfast at the Airbnb</h4><p>Enjoy a slow start and leave enough time for the countryside drive.</p></div></div>
+      <div class="t-row"><div class="t-time">9:15 AM</div><div class="t-content"><h4>Depart for Palagina</h4><p>Confirm the meeting point and allow extra time for winding local roads.</p></div></div>
+      <div class="t-row"><div class="t-time">10:00 AM</div><div class="t-content"><h4>Palagina wine and olive-oil tour</h4><p>Family-friendly estate experience. One adult should remain the designated driver for the afternoon.</p></div></div>
+      <div class="t-row"><div class="t-time">12:00–1:30 PM</div><div class="t-content"><h4>Lunch at Palagina</h4><p>Reserve lunch after the tour and enjoy an unhurried meal before leaving the estate.</p></div></div>
+      <div class="t-row"><div class="t-time">~1:45 PM</div><div class="t-content"><h4>Depart Palagina for Montefioralle</h4><p>Follow the countryside route and allow flexibility for lunch running long.</p></div></div>
+      <div class="t-row"><div class="t-time">~2:15–3:15 PM</div><div class="t-content"><h4>Explore Montefioralle</h4><p>Park outside the pedestrian village, walk the compact medieval lanes, and enjoy vineyard and olive-grove views.</p></div></div>
+      <div class="t-row"><div class="t-time">~3:30–5:30 PM</div><div class="t-content"><h4>Greve in Chianti, then return to Impruneta</h4><p>Explore Piazza Matteotti, Antica Macelleria Falorni, local food and artisan shops, and stop for gelato or coffee. Leave around 5:30 PM for the scenic drive back to the Airbnb.</p></div></div>
+      <div class="t-row"><div class="t-time">~7:30 PM</div><div class="t-content"><h4>Dinner at Ristorante I Tre Pini</h4><p>Return to the Airbnb for a short break, then drive to this relaxed countryside restaurant for traditional Tuscan dishes, fresh pasta, grilled meats, and pizza. Children are welcome; request a highchair if needed and reserve in advance.</p></div></div>
     </div>
 
     <div class="notes">
-      <div class="eyebrow">Best Afternoon Choices</div>
+      <div class="eyebrow">Tuesday Afternoon &amp; Parking Guide</div>
       <ul>
-        <li><strong>Impruneta village:</strong> Piazza Buondelmonti, the Basilica, cafés, gelato, and an easy local walk.</li>
-        <li><strong>Terracotta experience:</strong> visit a local workshop or showroom to see the craft Impruneta is famous for.</li>
-        <li><strong>Greve in Chianti:</strong> Piazza Matteotti, local food shops, cafés, and a relaxed village atmosphere.</li>
-        <li><strong>Montefioralle:</strong> a short walk through the small medieval hill village overlooking Greve.</li>
-        <li><strong>Scenic countryside drive:</strong> back roads through vineyards and olive groves, with viewpoints and small villages.</li>
-      </ul>
-    </div>
-    <div class="notes choices">
-      <div class="eyebrow">Raffa Notes</div>
-      <ul>
-        <li>Keep the afternoon flexible — Palagina plus one or two countryside stops will feel more enjoyable than trying to complete every option.</li>
+        <li><strong>Montefioralle:</strong> allow about one hour for the nearly car-free medieval village; expect uneven stone lanes.</li>
+        <li><strong>Montefioralle parking — Piazza Santo Stefano:</strong> paid spaces near the village; currently €1.50/hour for the first three hours.</li>
+        <li><strong>Montefioralle parking — Area sterrata:</strong> signed gravel overflow lot; currently €1.50/hour. Do not drive into the historic lanes.</li>
+        <li><strong>Greve parking:</strong> use Piazza Resistenza (upper/lower), Piazzale Ferrante Mori, or Piazzale Finetti; currently €1.00/hour.</li>
+        <li><strong>Greve ZTL:</strong> avoid Piazza Matteotti and central streets; weekdays through October, restrictions run 11:00 AM–5:00 PM and 6:00 PM–midnight.</li>
+        <li><strong>Payment:</strong> use the meter or a listed parking app and display the ticket. Recheck rates and restrictions before travel.</li>
       </ul>
     </div>
   </div>
@@ -906,7 +923,7 @@
       <div class="t-row"><div class="t-time">10:30 AM</div><div class="t-content"><h4>Pantheon</h4><p>Reserve timed admission if required for the selected date.</p></div></div>
       <div class="t-row"><div class="t-time">11:15 AM</div><div class="t-content"><h4>Piazza Navona</h4><p>Enjoy the fountains, architecture, and a short coffee break.</p></div></div>
       <div class="t-row"><div class="t-time">12:15 PM</div><div class="t-content"><h4>Lunch</h4><p>Choose a restaurant that allows enough time to reach the Walks meeting point.</p></div></div>
-      <div class="t-row"><div class="t-time">2:15–5:15 PM</div><div class="t-content"><h4>Walks Colosseum tour</h4><p>Three-hour guided tour covering the Colosseum, Roman Forum, and Palatine Hill with the confirmed tour operator. Carry photo identification and follow the operator's exact meeting instructions.</p></div></div>
+      <div class="t-row"><div class="t-time">2:15–5:15 PM</div><div class="t-content"><h4>Walks Colosseum tour</h4><p>Guided Colosseum, Roman Forum, and Palatine Hill with the confirmed tour operator. Carry photo identification and follow the operator's exact meeting instructions.</p></div></div>
       <div class="t-row"><div class="t-time">5:30 PM</div><div class="t-content"><h4>Capitoline Hill overlook</h4><p>Optional short stop for views over the Roman Forum.</p></div></div>
       <div class="t-row"><div class="t-time">7:00 PM</div><div class="t-content"><h4>Dinner in Monti</h4><p>Celebrate the day with a relaxed Roman dinner.</p></div></div>
     </div>
@@ -1014,10 +1031,10 @@
 
   <ul class="res-list">
     <li class="res-item"><span class="status-pill status-done">Confirmed</span><div><h4>Impruneta lodging</h4><p>Via delle Sodera, 6. Check in Monday at 4:00 PM; check out Thursday by 10:00 AM. Confirm parking and key instructions.</p></div></li>
-    <li class="res-item"><span class="status-pill status-action">Finalize tickets</span><div><h4>Airport-to-Florence rail plan</h4><p>Inbound: UA 884 departs IAD Sunday, Sept 6 at 5:35 PM and arrives FCO Monday, Sept 7 at 8:15 AM. Choose rail tickets with enough flexibility for immigration and baggage delays.</p></div></li>
+    <li class="res-item"><span class="status-pill status-action">Finalize tickets</span><div><h4>Airport-to-Florence rail plan</h4><p>Inbound: UA 884 departs IAD Sunday, Sept 6 at 5:35 PM and arrives FCO Monday, Sept 7 at 8:15 AM. Choose rail tickets with enough flexibility for immigration and baggage delays; continue by T2 tram to the Florence airport rental-car area.</p></div></li>
     <li class="res-item"><span class="status-pill status-action">Book</span><div><h4>Rental cars</h4><p>Confirm pickup and Thursday return location, luggage capacity, child seats, and automatic transmission if needed.</p></div></li>
     <li class="res-item"><span class="status-pill status-done">Confirmed</span><div><h4>Palagina family experience</h4><p>Tuesday, Sept 8 at 10:00 AM. Confirm exact duration, lunch details, meeting point, and cancellation terms.</p></div></li>
-    <li class="res-item"><span class="status-pill status-decide">Decision needed</span><div><h4>Tuesday afternoon experience</h4><p>Choose a short terracotta workshop, village exploration, or a family pasta-making class. Avoid pairing Palagina with a second long multi-hour class.</p></div></li>
+    <li class="res-item"><span class="status-pill status-done">Planned</span><div><h4>Tuesday Chianti afternoon</h4><p>After lunch at Palagina, visit Montefioralle and Greve in Chianti. Use the signed paid parking at Montefioralle and one of the municipal lots outside Greve's ZTL.</p></div></li>
     <li class="res-item"><span class="status-pill status-action">Plan</span><div><h4>Bologna parking</h4><p>Use a garage outside the restricted traffic zone and confirm access rules.</p></div></li>
     <li class="res-item"><span class="status-pill status-action">Book / confirm</span><div><h4>Accademia Gallery</h4><p>Thursday is the dedicated Accademia day. Reserve a late-morning timed entry that works after the 10:00 AM Impruneta checkout and rental car return.</p></div></li>
     <li class="res-item"><span class="status-pill status-action">Confirm</span><div><h4>Florence to Rome train</h4><p>Plan for departure around 5:00 PM Thursday, Sept 10.</p></div></li>
@@ -1026,11 +1043,12 @@
     <li class="res-item"><span class="status-pill status-action">Confirmed / verify</span><div><h4>Rome lodging</h4><p>Via Bocca di Leone 32, Rome, Lazio 00187, Italy. Thursday evening check-in and early Sunday checkout; confirm key return and luggage access.</p></div></li>
     <li class="res-item"><span class="status-pill status-action">Book</span><div><h4>Sunday airport transfer</h4><p>Set the pickup time after the flight departure time is confirmed; request child seats if needed.</p></div></li>
     <li class="res-item"><span class="status-pill status-action">Book</span><div><h4>Friday and Saturday dinners</h4><p>Reservations are especially useful for a family group.</p></div></li>
+    <li class="res-item"><span class="status-pill status-action">Plan</span><div><h4>Monday Florence overlook</h4><p>Boboli is closed on the first Monday. Use Garage Porta Romana for the flexible food stop, then Piazzale Michelangelo and the Rose Garden. Verify hours and weather shortly before travel.</p></div></li>
   </ul>
 
   <div class="flex-note">
     <div class="eyebrow">Built-in flexibility</div>
-    <p>The itinerary intentionally leaves room for weather, the children's energy levels, travel delays, and spontaneous discoveries. Monday afternoon remains intentionally open after the overnight flight and rail transfer. Tuesday is anchored by the 10:00 AM Palagina tour. Thursday is centered on the Accademia and the approximately 5:00 PM train to Rome. Friday and Saturday use the central Rome lodging as the walking base, with taxis available to preserve energy before major tours.</p>
+    <p>The itinerary intentionally leaves room for weather, the children's energy levels, travel delays, and spontaneous discoveries. Monday afternoon has a backup plan built in if the Florence overlook doesn't fit the timing. Tuesday is anchored by the 10:00 AM Palagina tour, with Montefioralle and Greve as the planned follow-on. Thursday is centered on the Accademia and the approximately 5:00 PM train to Rome. Friday and Saturday use the central Rome lodging as the walking base, with taxis available to preserve energy before major tours.</p>
   </div>
 </section>
 
@@ -1051,6 +1069,8 @@
   <h2>Buon Viaggio, Raffa Family</h2>
   <p>Eat well · Walk far · Take the picture</p>
 </footer>
+
+</div><!-- /#site-content -->
 
 <script>
   const cells = document.querySelectorAll('.board-cell');
@@ -1095,8 +1115,6 @@
   }
 </script>
 
-</div><!-- /#site-content -->
-
 <script>
   (function(){
     const PASSCODE = "CRAZY2026";
@@ -1106,7 +1124,6 @@
     const error = document.getElementById('lock-error');
     const lockScreen = document.getElementById('lock-screen');
 
-    // Stay unlocked for the rest of this browser session once entered correctly
     if(sessionStorage.getItem('raffa-unlocked') === 'true'){
       body.classList.remove('locked');
       lockScreen.style.display = 'none';
