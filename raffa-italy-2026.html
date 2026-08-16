@@ -7,6 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Space+Mono:wght@400;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <style>
   :root{
     --paper:#EFE6D2;
@@ -18,11 +20,12 @@
     --line-strong: rgba(36,46,56,0.32);
 
     --c-arrival:#57697A;
-    --c-bologna:#AE4A2C;
     --c-tuscany:#66703F;
+    --c-bologna:#AE4A2C;
     --c-florence:#B7912A;
     --c-romeold:#9A3B24;
     --c-vatican:#8A6A22;
+    --c-depart:#7A4A55;
 
     --accent: var(--c-arrival);
   }
@@ -63,6 +66,27 @@
     .reveal.is-visible{opacity:1; transform:translateY(0);}
   }
 
+  a[href]{
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+    text-decoration-color: currentColor;
+  }
+  a[href]:hover{ opacity: 0.72; }
+  .tag-card address.tag-link a{ color: var(--tag-accent); }
+  .geo-link{
+    font-family:'Space Mono', monospace;
+    font-size:0.66rem;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    margin-left:0.5em;
+    color:var(--accent);
+    text-decoration:none;
+    border-bottom:1px dotted currentColor;
+    white-space:nowrap;
+  }
+  .geo-link:hover{ opacity:0.7; }
+
   /* ---------- HERO ---------- */
   .hero{
     position:relative;
@@ -82,6 +106,20 @@
     color:var(--c-bologna);
     margin-bottom:1.1rem;
   }
+  .edition-tag{
+    display:inline-block;
+    margin-bottom:1.1rem;
+    margin-left:0.8rem;
+    padding:0.15rem 0.6rem;
+    font-family:'Space Mono', monospace;
+    font-size:0.65rem;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--c-tuscany);
+    border:1px solid var(--c-tuscany);
+    border-radius:20px;
+    vertical-align:middle;
+  }
   .hero h1{
     font-size:clamp(2.6rem, 7vw, 5.4rem);
     line-height:0.98;
@@ -94,9 +132,16 @@
   }
   .hero-tagline{
     margin-top:1.4rem;
-    max-width:46ch;
+    max-width:50ch;
     font-size:1.15rem;
     color:var(--ink-soft);
+  }
+  .hero-sub{
+    margin-top:0.6rem;
+    max-width:50ch;
+    font-size:0.92rem;
+    color:var(--ink-soft);
+    font-style:italic;
   }
   .route-ticket{
     margin-top:3rem;
@@ -150,7 +195,6 @@
     top:0;
     z-index:50;
     background:var(--ink);
-    border-bottom:3px solid var(--c-bologna);
   }
   .board{
     display:flex;
@@ -160,8 +204,8 @@
   .board::-webkit-scrollbar{display:none;}
   .board-cell{
     flex:1 0 auto;
-    min-width:118px;
-    padding:0.7rem 0.9rem;
+    min-width:108px;
+    padding:0.7rem 0.8rem;
     font-family:'Space Mono', monospace;
     color:#EFE6D2;
     border-right:1px solid rgba(239,230,210,0.14);
@@ -171,9 +215,28 @@
     transition:background 0.2s ease;
   }
   .board-cell:hover{background:rgba(239,230,210,0.08);}
-  .board-cell.active{background:rgba(239,230,210,0.14); box-shadow: inset 0 -3px 0 var(--cell-accent, var(--c-bologna));}
-  .board-cell .bd-day{font-size:0.65rem; letter-spacing:0.14em; text-transform:uppercase; opacity:0.65;}
-  .board-cell .bd-title{font-size:0.82rem; margin-top:0.2rem; letter-spacing:0.02em;}
+  .board-cell.active{background:rgba(239,230,210,0.14);}
+  .board-cell .bd-dot{
+    display:inline-block;
+    width:6px; height:6px;
+    border-radius:50%;
+    background:var(--cell-accent, var(--c-bologna));
+    margin-right:6px;
+    vertical-align:middle;
+  }
+  .board-cell .bd-day{font-size:0.62rem; letter-spacing:0.12em; text-transform:uppercase; opacity:0.65;}
+  .board-cell .bd-title{font-size:0.78rem; margin-top:0.2rem; letter-spacing:0.02em;}
+  .board-route{
+    height:4px;
+    background:linear-gradient(to right,
+      var(--c-arrival) 0 14.3%,
+      var(--c-tuscany) 14.3% 28.6%,
+      var(--c-bologna) 28.6% 42.9%,
+      var(--c-florence) 42.9% 57.2%,
+      var(--c-romeold) 57.2% 71.5%,
+      var(--c-vatican) 71.5% 85.8%,
+      var(--c-depart) 85.8% 100%);
+  }
 
   /* ---------- GLANCE STRIP ---------- */
   .glance{
@@ -198,10 +261,181 @@
   .glance-cell .g-date{font-family:'Space Mono',monospace; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--ink-soft);}
   .glance-cell .g-base{font-family:'Fraunces',serif; font-size:1.15rem; margin-top:0.3rem;}
   .glance-cell .g-desc{margin-top:0.4rem; font-size:0.88rem; color:var(--ink-soft);}
+  .glance-cell .g-tbd{
+    display:inline-block;
+    margin-top:0.5rem;
+    font-family:'Space Mono',monospace;
+    font-size:0.62rem;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--c-depart);
+    border:1px solid var(--c-depart);
+    border-radius:20px;
+    padding:0.1rem 0.5rem;
+  }
+
+  /* ---------- ACCOMMODATIONS / PROFILE ---------- */
+  .stay{
+    padding:4rem 6vw;
+    border-bottom:1px solid var(--line);
+    background:var(--paper-2);
+  }
+  .stay h2{font-size:clamp(1.6rem,3vw,2.2rem); margin-bottom:2rem;}
+  .profile-note{
+    background:var(--card);
+    border-left:4px solid var(--c-tuscany);
+    padding:1.2rem 1.5rem;
+    border-radius:0 4px 4px 0;
+    margin-bottom:2.2rem;
+  }
+  .profile-note .eyebrow{color:var(--c-tuscany); margin-bottom:0.4rem;}
+  .profile-note p{margin:0; font-size:0.95rem; color:var(--ink);}
+  .tag-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:2rem;
+  }
+  .tag-card{
+    position:relative;
+    background:var(--card);
+    border:1px solid var(--line-strong);
+    border-radius:4px;
+    padding:1.6rem 1.6rem 1.4rem;
+  }
+  .tag-card::before{
+    content:'';
+    position:absolute;
+    top:-10px; left:24px;
+    width:18px; height:18px;
+    border-radius:50%;
+    background:var(--paper-2);
+    border:1px solid var(--line-strong);
+  }
+  .tag-card .tag-loc{
+    font-family:'Space Mono', monospace;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    font-size:0.72rem;
+    color:var(--tag-accent);
+  }
+  .tag-card h3{font-size:1.5rem; margin-top:0.4rem;}
+  .tag-card address{font-style:normal; margin-top:0.6rem; color:var(--ink-soft); font-size:0.95rem; line-height:1.5;}
+  .tag-card address.tag-link{margin-top:0.3rem; font-family:'Space Mono',monospace; font-size:0.78rem; word-break:break-all;}
+  .tag-card .tag-divider{border-top:1px dashed var(--line-strong); margin:1rem 0;}
+  .tag-card .tag-row{display:flex; justify-content:space-between; gap:1rem; font-size:0.92rem; padding:0.3rem 0;}
+  .tag-card .tag-row span:first-child{color:var(--ink-soft); font-family:'Space Mono',monospace; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.06em; padding-top:0.15rem;}
+  .tag-card .tag-row span:last-child{text-align:right; max-width:60%;}
+  .tag-card .tag-note{margin-top:0.8rem; font-size:0.88rem; color:var(--ink-soft); border-left:3px solid var(--tag-accent); padding-left:0.7rem;}
+
+  /* ---------- TRANSPORT / ESSENTIALS ---------- */
+  .transport{
+    padding:4rem 6vw;
+    border-bottom:1px solid var(--line);
+    background:var(--paper);
+  }
+  .transport h2{font-size:clamp(1.6rem,3vw,2.2rem); margin-bottom:0.4rem;}
+  .transport > p.lede{max-width:62ch; color:var(--ink-soft); margin:0.6rem 0 2rem;}
+  .essentials-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:2rem;
+  }
+  .essentials-grid h3{
+    font-size:0.85rem;
+    font-family:'Space Mono', monospace;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--c-bologna);
+    margin-bottom:0.9rem;
+    font-weight:400;
+  }
+  .essentials-grid ul{list-style:none; margin:0; padding:0;}
+  .essentials-grid li{
+    padding:0.55rem 0;
+    border-top:1px solid var(--line);
+    font-size:0.92rem;
+    color:var(--ink-soft);
+  }
+  .essentials-grid li:first-child{border-top:none;}
+  .essentials-grid li::before{content:'— '; color:var(--c-bologna);}
+  .essentials-grid .rail-step{color:var(--ink); font-weight:500;}
+
+  /* ---------- TRIP MAP ---------- */
+  .tripmap{
+    padding:4rem 6vw;
+    border-bottom:1px solid var(--line);
+    background:var(--paper-2);
+  }
+  .tripmap h2{font-size:clamp(1.6rem,3vw,2.2rem); margin-bottom:0.4rem;}
+  .tripmap > p.lede{max-width:62ch; color:var(--ink-soft); margin:0.6rem 0 1.6rem;}
+  .tripmap-filters{
+    display:flex;
+    flex-wrap:wrap;
+    gap:0.55rem;
+    margin-bottom:1.3rem;
+  }
+  .tripmap-filter{
+    font-family:'Space Mono', monospace;
+    font-size:0.72rem;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    padding:0.4rem 0.8rem;
+    border-radius:20px;
+    border:1px solid var(--filter-accent, var(--ink-soft));
+    background:transparent;
+    color:var(--filter-accent, var(--ink-soft));
+    cursor:pointer;
+    transition:background 0.15s ease, color 0.15s ease;
+  }
+  .tripmap-filter.active{
+    background:var(--filter-accent, var(--ink-soft));
+    color:var(--card);
+  }
+  #trip-map{
+    height:520px;
+    width:100%;
+    border-radius:6px;
+    border:1px solid var(--line-strong);
+    background:var(--card);
+  }
+  .leaflet-popup-content-wrapper{
+    border-radius:4px;
+    font-family:'Work Sans', sans-serif;
+  }
+  .lp-day{
+    font-family:'Space Mono', monospace;
+    font-size:0.66rem;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--lp-accent, #AE4A2C);
+  }
+  .lp-time{
+    font-family:'Space Mono', monospace;
+    font-size:0.72rem;
+    color:var(--ink-soft);
+    margin-top:0.15rem;
+  }
+  .lp-title{
+    font-family:'Fraunces', serif;
+    font-size:1.05rem;
+    margin:0.3rem 0 0.2rem;
+  }
+  .lp-desc{font-size:0.85rem; color:var(--ink-soft); margin:0 0 0.5rem; max-width:220px;}
+  .lp-link{font-size:0.75rem;}
+
+  /* ---------- DAY BANNER (SVG) ---------- */
+  .day-banner{
+    width:100%;
+    height:110px;
+    border-radius:4px;
+    overflow:hidden;
+    margin-bottom:1.8rem;
+  }
+  .day-banner svg{display:block; width:100%; height:100%;}
 
   /* ---------- DAY SECTIONS ---------- */
   .day{
-    scroll-margin-top:56px;
+    scroll-margin-top:60px;
     padding:4.5rem 6vw 3.5rem;
     border-bottom:1px solid var(--line);
     background:var(--paper);
@@ -237,19 +471,25 @@
     color:var(--accent);
     border-radius:2px;
   }
+  .day-sub span.tbd-pill{
+    display:inline-block;
+    margin-left:0.6rem;
+    padding:0.15rem 0.55rem;
+    background:var(--accent);
+    color:var(--card);
+    border-radius:2px;
+  }
 
   .timeline{
     margin-top:2.5rem;
     display:grid;
-    grid-template-columns:96px 1fr;
+    grid-template-columns:104px 1fr;
     gap:0 1.4rem;
   }
-  .t-row{
-    display:contents;
-  }
+  .t-row{display:contents;}
   .t-time{
     font-family:'Space Mono', monospace;
-    font-size:0.82rem;
+    font-size:0.74rem;
     color:var(--accent);
     padding:1.1rem 0;
     position:relative;
@@ -271,7 +511,7 @@
     padding-left:1.2rem;
   }
   .t-row:first-child .t-content, .t-row:first-child .t-time{border-top:none;}
-  .t-content h4{font-size:1.08rem; font-weight:600; font-family:'Work Sans', sans-serif;}
+  .t-content h4{font-size:1.05rem; font-weight:600; font-family:'Work Sans', sans-serif;}
   .t-content p{margin:0.35rem 0 0; color:var(--ink-soft); font-size:0.95rem; max-width:62ch;}
 
   .notes{
@@ -285,37 +525,59 @@
   .notes ul{margin:0; padding-left:1.1rem;}
   .notes li{margin-bottom:0.4rem; color:var(--ink);}
   .notes li:last-child{margin-bottom:0;}
+  .notes.choices{margin-top:1.4rem;}
+  .notes.tbd{
+    background:transparent;
+    border:1px dashed var(--line-strong);
+    border-left:4px dashed var(--accent);
+  }
+  .notes.tbd .eyebrow{color:var(--ink-soft);}
 
-  /* ---------- RESERVATIONS ---------- */
+  /* ---------- LOGISTICS / RESERVATIONS ---------- */
   .logistics{
     padding:4.5rem 6vw;
     background:var(--ink);
     color:var(--paper);
   }
   .logistics .eyebrow{color:#C9A98A;}
-  .logistics h2{color:var(--paper); font-size:clamp(1.8rem,3.5vw,2.4rem); margin-bottom:2rem;}
-  .logistics-grid{
+  .logistics h2{color:var(--paper); font-size:clamp(1.8rem,3.5vw,2.4rem); margin-bottom:0.6rem;}
+  .logistics > p.lede{max-width:60ch; color:#C9C1AE; margin:0 0 2.2rem;}
+
+  .res-list{list-style:none; margin:0; padding:0; border-top:1px solid rgba(239,230,210,0.15);}
+  .res-item{
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-    gap:2.5rem;
+    grid-template-columns:140px 1fr;
+    gap:1.2rem;
+    padding:1.1rem 0;
+    border-bottom:1px solid rgba(239,230,210,0.15);
+    align-items:start;
   }
-  .logistics-grid h3{
-    font-size:1rem;
+  .status-pill{
     font-family:'Space Mono', monospace;
+    font-size:0.68rem;
     text-transform:uppercase;
-    letter-spacing:0.1em;
-    color:#E8B98A;
-    margin-bottom:1rem;
-    font-weight:400;
+    letter-spacing:0.08em;
+    padding:0.25rem 0.6rem;
+    border-radius:20px;
+    display:inline-block;
+    white-space:nowrap;
+    width:fit-content;
   }
-  .logistics-grid ul{list-style:none; margin:0; padding:0;}
-  .logistics-grid li{
-    padding:0.6rem 0;
-    border-top:1px solid rgba(239,230,210,0.15);
-    font-size:0.98rem;
+  .status-done{background:rgba(107,140,80,0.22); color:#B7D19A; border:1px solid rgba(183,209,154,0.4);}
+  .status-action{background:rgba(199,154,46,0.22); color:#EBC97A; border:1px solid rgba(235,201,122,0.4);}
+  .status-decide{background:rgba(122,74,85,0.28); color:#E3AEB8; border:1px solid rgba(227,174,184,0.4);}
+  .res-item h4{font-size:1rem; font-weight:600; margin:0 0 0.3rem; font-family:'Work Sans',sans-serif; color:var(--paper);}
+  .res-item p{margin:0; font-size:0.9rem; color:#C9C1AE;}
+
+  .flex-note{
+    margin-top:2.5rem;
+    background:rgba(239,230,210,0.06);
+    border:1px solid rgba(239,230,210,0.18);
+    border-radius:4px;
+    padding:1.4rem 1.6rem;
   }
-  .logistics-grid li:first-child{border-top:none;}
-  .logistics-grid li::before{content:'— '; color:#C9A98A;}
+  .flex-note .eyebrow{color:#C9A98A; margin-bottom:0.5rem;}
+  .flex-note p{margin:0; font-size:0.95rem; color:#DCD5C4; max-width:70ch;}
 
   /* ---------- RULES ---------- */
   .rules{
@@ -323,11 +585,7 @@
     background:var(--paper);
   }
   .rules h2{font-size:clamp(1.8rem,3.5vw,2.4rem); margin-bottom:2.5rem;}
-  .rules-list{
-    counter-reset:rule;
-    display:flex;
-    flex-direction:column;
-  }
+  .rules-list{counter-reset:rule; display:flex; flex-direction:column;}
   .rule{
     counter-increment:rule;
     display:grid;
@@ -370,21 +628,104 @@
   }
 
   @media (max-width:640px){
-    .timeline{grid-template-columns:64px 1fr;}
+    .timeline{grid-template-columns:70px 1fr;}
     .hero{padding:4rem 5vw 2.5rem;}
-    .glance,.day,.logistics,.rules{padding-left:5vw; padding-right:5vw;}
+    .glance,.day,.logistics,.rules,.stay,.transport{padding-left:5vw; padding-right:5vw;}
+    .res-item{grid-template-columns:1fr; gap:0.4rem;}
+    .day-banner{height:84px;}
   }
+
+  /* ---------- LOCK SCREEN ---------- */
+  #lock-screen{
+    position:fixed;
+    inset:0;
+    z-index:1000;
+    background:var(--ink);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:1.5rem;
+  }
+  #lock-screen .lock-card{
+    max-width:380px;
+    width:100%;
+    text-align:center;
+  }
+  #lock-screen .eyebrow{color:#C9A98A; justify-content:center; display:block; margin-bottom:1rem;}
+  #lock-screen h1{
+    color:var(--paper);
+    font-size:clamp(2rem,6vw,2.8rem);
+    font-style:italic;
+    font-weight:500;
+    margin-bottom:0.6rem;
+  }
+  #lock-screen p{color:#C9C1AE; font-size:0.95rem; margin:0 0 1.8rem;}
+  #lock-form{display:flex; flex-direction:column; gap:0.9rem;}
+  #lock-input{
+    font-family:'Space Mono', monospace;
+    font-size:1rem;
+    letter-spacing:0.1em;
+    text-align:center;
+    text-transform:uppercase;
+    padding:0.85rem 1rem;
+    border-radius:4px;
+    border:1px solid rgba(239,230,210,0.3);
+    background:rgba(239,230,210,0.06);
+    color:var(--paper);
+  }
+  #lock-input:focus{outline:2px solid var(--c-bologna); outline-offset:2px;}
+  #lock-submit{
+    font-family:'Space Mono', monospace;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    font-size:0.85rem;
+    padding:0.85rem 1rem;
+    border-radius:4px;
+    border:none;
+    background:var(--c-bologna);
+    color:var(--paper);
+    cursor:pointer;
+    transition:opacity 0.2s ease;
+  }
+  #lock-submit:hover{opacity:0.85;}
+  #lock-error{
+    color:#E3AEB8;
+    font-size:0.85rem;
+    font-family:'Space Mono', monospace;
+    min-height:1.2rem;
+    margin-top:-0.3rem;
+  }
+  body.locked{overflow:hidden;}
+  body.locked #site-content{display:none;}
 </style>
 </head>
-<body>
+<body class="locked">
+
+<div id="lock-screen">
+  <div class="lock-card">
+    <span class="eyebrow">The Raffa Experience</span>
+    <h1>Password, per favore</h1>
+    <p>This itinerary is just for the family. Enter the trip passcode to continue.</p>
+    <form id="lock-form">
+      <input id="lock-input" type="text" inputmode="latin" autocomplete="off" placeholder="Enter passcode" aria-label="Passcode">
+      <div id="lock-error"></div>
+      <button type="submit" id="lock-submit">Unlock</button>
+    </form>
+  </div>
+</div>
+
+<div id="site-content">
 
 <!-- HERO -->
 <section class="hero">
-  <div class="hero-kicker">Impruneta · Bologna · Florence · Rome — Sept 7–12, 2026</div>
+  <div class="hero-kicker">Rome · Tuscany · Bologna · Florence — Sept 6–13, 2026<span class="edition-tag">Version 2.5</span></div>
   <h1>The Raffa<br><em>Experience</em></h1>
-  <p class="hero-tagline">A family journey through Florence, Tuscany, Bologna &amp; Rome. Built for long lunches, unforgettable sights, daily gelato, and two adventurous kids.</p>
+  <p class="hero-tagline">Wine country, handmade pasta, medieval villages, Renaissance art, and the greatest hits of Rome — paced for a multigenerational group of eight.</p>
+  <p class="hero-sub">Detailed plans are locked through Saturday, and Sunday's flight home is confirmed. A few dining confirmations and the FCO transfer are still pending.</p>
 
   <div class="route-ticket">
+    <span class="route-stop">IAD</span>
+    <span class="route-dots"><svg viewBox="0 0 34 8"><line x1="1" y1="4" x2="33" y2="4" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 3"/></svg></span>
     <span class="route-stop">IMPRUNETA</span>
     <span class="route-dots"><svg viewBox="0 0 34 8"><line x1="1" y1="4" x2="33" y2="4" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 3"/></svg></span>
     <span class="route-stop">BOLOGNA</span>
@@ -395,266 +736,673 @@
   </div>
 
   <div class="hero-meta">
-    <div><strong>6 Days</strong>One arrival day, three Tuscan days, two Roman days</div>
-    <div><strong>2 Home Bases</strong>Impruneta (Tuscany) &amp; Rome</div>
-    <div><strong>Pace</strong>One seated meal + one gelato stop, daily</div>
+    <div><strong>8 Days</strong>Sept 6 overnight departure to Sept 13 return</div>
+    <div><strong>2 Home Bases</strong>Casa di Miei, Impruneta (3 nights) &amp; central Rome (3 nights)</div>
+    <div><strong>Group of Eight</strong>Six adults, kids ages 3 and 5</div>
   </div>
 </section>
 
 <!-- DEPARTURE BOARD NAV -->
 <div class="board-wrap">
   <nav class="board" id="board" aria-label="Jump to a day">
-    <button class="board-cell" data-target="#day-glance" style="--cell-accent:var(--c-bologna)"><div class="bd-day">Overview</div><div class="bd-title">Trip at a Glance</div></button>
-    <button class="board-cell" data-target="#day-mon" style="--cell-accent:var(--c-arrival)"><div class="bd-day">Mon · Sep 7</div><div class="bd-title">Arrival</div></button>
-    <button class="board-cell" data-target="#day-tue" style="--cell-accent:var(--c-bologna)"><div class="bd-day">Tue · Sep 8</div><div class="bd-title">Bologna</div></button>
-    <button class="board-cell" data-target="#day-wed" style="--cell-accent:var(--c-tuscany)"><div class="bd-day">Wed · Sep 9</div><div class="bd-title">Countryside</div></button>
-    <button class="board-cell" data-target="#day-thu" style="--cell-accent:var(--c-florence)"><div class="bd-day">Thu · Sep 10</div><div class="bd-title">Florence → Rome</div></button>
-    <button class="board-cell" data-target="#day-fri" style="--cell-accent:var(--c-romeold)"><div class="bd-day">Fri · Sep 11</div><div class="bd-title">Ancient Rome</div></button>
-    <button class="board-cell" data-target="#day-sat" style="--cell-accent:var(--c-vatican)"><div class="bd-day">Sat · Sep 12</div><div class="bd-title">Vatican</div></button>
-    <button class="board-cell" data-target="#day-logistics" style="--cell-accent:#C9A98A"><div class="bd-day">Notes</div><div class="bd-title">Reservations</div></button>
+    <button class="board-cell" data-target="#day-glance" style="--cell-accent:#C9A98A"><div class="bd-day">Overview</div><div class="bd-title"><span class="bd-dot"></span>Glance</div></button>
+    <button class="board-cell" data-target="#day-stay" style="--cell-accent:#C9A98A"><div class="bd-day">Lodging</div><div class="bd-title"><span class="bd-dot"></span>Where We Stay</div></button>
+    <button class="board-cell" data-target="#day-transport" style="--cell-accent:#C9A98A"><div class="bd-day">Essentials</div><div class="bd-title"><span class="bd-dot"></span>Getting Around</div></button>
+    <button class="board-cell" data-target="#day-tripmap" style="--cell-accent:#C9A98A"><div class="bd-day">Overview</div><div class="bd-title"><span class="bd-dot"></span>Trip Map</div></button>
+    <button class="board-cell" data-target="#day-arrival" style="--cell-accent:var(--c-arrival)"><div class="bd-day">Mon · Sep 7</div><div class="bd-title"><span class="bd-dot"></span>Arrival</div></button>
+    <button class="board-cell" data-target="#day-tue" style="--cell-accent:var(--c-tuscany)"><div class="bd-day">Tue · Sep 8</div><div class="bd-title"><span class="bd-dot"></span>Palagina</div></button>
+    <button class="board-cell" data-target="#day-wed" style="--cell-accent:var(--c-bologna)"><div class="bd-day">Wed · Sep 9</div><div class="bd-title"><span class="bd-dot"></span>Bologna</div></button>
+    <button class="board-cell" data-target="#day-thu" style="--cell-accent:var(--c-florence)"><div class="bd-day">Thu · Sep 10</div><div class="bd-title"><span class="bd-dot"></span>Florence → Rome</div></button>
+    <button class="board-cell" data-target="#day-fri" style="--cell-accent:var(--c-romeold)"><div class="bd-day">Fri · Sep 11</div><div class="bd-title"><span class="bd-dot"></span>Ancient Rome</div></button>
+    <button class="board-cell" data-target="#day-sat" style="--cell-accent:var(--c-vatican)"><div class="bd-day">Sat · Sep 12</div><div class="bd-title"><span class="bd-dot"></span>Vatican</div></button>
+    <button class="board-cell" data-target="#day-sun" style="--cell-accent:var(--c-depart)"><div class="bd-day">Sun · Sep 13</div><div class="bd-title"><span class="bd-dot"></span>Departure</div></button>
+    <button class="board-cell" data-target="#day-logistics" style="--cell-accent:#C9A98A"><div class="bd-day">Notes</div><div class="bd-title"><span class="bd-dot"></span>Reservations</div></button>
   </nav>
+  <div class="board-route"></div>
 </div>
 
 <!-- GLANCE -->
 <section class="glance" id="day-glance">
-  <div class="eyebrow">Trip at a glance</div>
-  <h2>A balanced itinerary, gentle to ambitious</h2>
-  <p style="max-width:60ch; color:var(--ink-soft); margin-top:0.8rem;">Starts gently after the overnight flight, blends food and countryside in Tuscany, then finishes with two full, high-energy days in Rome.</p>
+  <div class="eyebrow">Trip dashboard</div>
+  <h2>Eight days, two bases, one comfortable pace</h2>
+  <p style="max-width:62ch; color:var(--ink-soft); margin-top:0.8rem;">Monday through Saturday are locked. Sunday remains open, and a couple of Saturday dining confirmations are still pending.</p>
   <div class="glance-table">
     <div class="glance-cell" style="--cell-accent:var(--c-arrival)">
-      <div class="g-date">Mon, Sept 7 — Impruneta</div>
-      <div class="g-base">Arrival Day</div>
-      <div class="g-desc">Easy Florence walk, rental cars, early night.</div>
-    </div>
-    <div class="glance-cell" style="--cell-accent:var(--c-bologna)">
-      <div class="g-date">Tue, Sept 8 — Impruneta</div>
-      <div class="g-base">Bologna Food Day</div>
-      <div class="g-desc">Markets, pasta, gelato, Piazza Maggiore.</div>
+      <div class="g-date">Sun–Mon, Sept 6–7 — IAD → Impruneta</div>
+      <div class="g-base">Arrive Italy</div>
+      <div class="g-desc">Depart IAD on UA 884 at 5:35 PM. Land FCO 8:15 AM; rail to Florence; rental car; explore Impruneta; Casa di Miei; Bellavista.</div>
     </div>
     <div class="glance-cell" style="--cell-accent:var(--c-tuscany)">
-      <div class="g-date">Wed, Sept 9 — Impruneta</div>
-      <div class="g-base">Tuscan Countryside</div>
-      <div class="g-desc">Kid-friendly farm &amp; winery, Greve, Montefioralle.</div>
+      <div class="g-date">Tue, Sept 8 — Chianti Countryside</div>
+      <div class="g-base">Palagina &amp; Chianti Hills</div>
+      <div class="g-desc">Palagina at 10:00 AM; lunch; Montefioralle; Greve; Airbnb reset; Piazzale Michelangelo; Hostaria del Bricco.</div>
+    </div>
+    <div class="glance-cell" style="--cell-accent:var(--c-bologna)">
+      <div class="g-date">Wed, Sept 9 — Bologna Food Day</div>
+      <div class="g-base">Bologna Food &amp; History</div>
+      <div class="g-desc">Drive, park at Ex-Staveco, full walking route, recharge stops, Osteria Al 15.</div>
     </div>
     <div class="glance-cell" style="--cell-accent:var(--c-florence)">
-      <div class="g-date">Thu, Sept 10 — Rome</div>
-      <div class="g-base">Florence Highlights</div>
-      <div class="g-desc">Accademia, Duomo district, 5:00 PM train.</div>
+      <div class="g-date">Thu, Sept 10 — Florence to Rome</div>
+      <div class="g-base">Accademia &amp; Transfer</div>
+      <div class="g-desc">Checkout; return car at FLR; Accademia and central Florence; train to Rome around 6:00 PM.</div>
     </div>
     <div class="glance-cell" style="--cell-accent:var(--c-romeold)">
-      <div class="g-date">Fri, Sept 11 — Rome</div>
-      <div class="g-base">Ancient Rome</div>
-      <div class="g-desc">Historic center, dinner in Trastevere.</div>
+      <div class="g-date">Fri, Sept 11 — Ancient Rome</div>
+      <div class="g-base">Colosseum, Forum &amp; Palatine</div>
+      <div class="g-desc">7:00 AM Spanish Steps walking route; Campo de' Fiori, Torre Argentina and Jewish Ghetto; quick lunch; Walks tour 2:15–5:15 PM; Trastevere; 8:00 PM Ditta Trinchetti.</div>
     </div>
     <div class="glance-cell" style="--cell-accent:var(--c-vatican)">
-      <div class="g-date">Sat, Sept 12 — Rome</div>
-      <div class="g-base">Vatican City</div>
-      <div class="g-desc">Castel Sant'Angelo, Campo de' Fiori, Jewish Ghetto.</div>
+      <div class="g-date">Sat, Sept 12 — Vatican + Villa Borghese</div>
+      <div class="g-base">Vatican, Borghese &amp; Early Dinner</div>
+      <div class="g-desc">Walks Complete Vatican Tour 10:15 AM–1:15 PM; Scialla takeaway lunch; optional Castel Sant'Angelo exterior; Villa Borghese, lake and Pincio; 6:00 PM Sgarro Bistrot — confirmed.</div>
     </div>
-  </div>
-
-  <div class="notes" style="margin-top:2.5rem; --accent:var(--c-bologna);">
-    <div class="eyebrow">Planning priorities</div>
-    <ul>
-      <li>Keep Monday intentionally light — fresh air, a good meal, an early bedtime, not landmarks.</li>
-      <li>Reserve the major timed-entry attractions before the trip: Accademia, Colosseum/Forum/Palatine, Vatican Museums.</li>
-      <li>Build in one seated meal and one gelato break each day.</li>
-      <li>Use taxis strategically in Rome to protect energy for the sites that matter most.</li>
-    </ul>
+    <div class="glance-cell" style="--cell-accent:var(--c-depart)">
+      <div class="g-date">Sun, Sept 13 — Departure</div>
+      <div class="g-base">Early Checkout</div>
+      <div class="g-desc">UA 885 departs FCO 10:20 AM, arriving IAD 2:15 PM; airport transfer still to be booked.<span class="g-tbd">Transfer TBD</span></div>
+    </div>
   </div>
 </section>
 
-<!-- MONDAY -->
-<section class="day" id="day-mon" style="--accent:var(--c-arrival)">
+<!-- ACCOMMODATIONS -->
+<section class="stay" id="day-stay">
+  <div class="eyebrow">Family profile &amp; lodging</div>
+  <h2>Two home bases</h2>
+
+  <div class="profile-note">
+    <div class="eyebrow">Family Profile</div>
+    <p>Six adults and two children ages 3 and 5. Transportation can split into two groups when convenient, but sit-down meals and major reservations should keep all eight together. The itinerary favors authentic experiences, room to move, regular meals, and true recharge periods rather than constant sightseeing.</p>
+  </div>
+
+  <div class="tag-grid">
+    <div class="tag-card" style="--tag-accent:var(--c-tuscany)">
+      <div class="tag-loc">Base 1 — Tuscany</div>
+      <h3>Casa di Miei</h3>
+      <address>Via delle Sodera, 6<br>50023 Impruneta, Toscana</address>
+      <address class="tag-link"><a href="https://www.airbnb.com/rooms/33757934" target="_blank" rel="noopener">airbnb.com/rooms/33757934</a></address>
+      <div class="tag-divider"></div>
+      <div class="tag-row"><span>Check in</span><span>Monday, Sept 7 at 4:00 PM</span></div>
+      <div class="tag-row"><span>Check out</span><span>Thursday, Sept 10 by 10:00 AM</span></div>
+      <div class="tag-note">Rental car recommended for the countryside and Bologna day trip.</div>
+    </div>
+    <div class="tag-card" style="--tag-accent:var(--c-romeold)">
+      <div class="tag-loc">Base 2 — Rome</div>
+      <h3>Via Bocca di Leone</h3>
+      <address>Via Bocca di Leone 32<br>00187 Rome, Lazio, Italy</address>
+      <address class="tag-link"><a href="https://www.google.com/maps/search/?api=1&query=Via+Bocca+di+Leone+32%2C+00187+Roma%2C+Italy" target="_blank" rel="noopener">View on map</a></address>
+      <div class="tag-divider"></div>
+      <div class="tag-row"><span>Check in</span><span>Thursday evening, after the Florence train</span></div>
+      <div class="tag-row"><span>Check out</span><span>Early Sunday, Sept 13</span></div>
+      <div class="tag-note">An excellent walking base beside the Spanish Steps; use taxis for the Colosseum and Vatican.</div>
+    </div>
+  </div>
+</section>
+
+<!-- TRANSPORT / ESSENTIALS -->
+<section class="transport" id="day-transport">
+  <div class="eyebrow">Core transportation plan</div>
+  <h2>Getting around</h2>
+  <p class="lede">The arrival rail sequence, driving cautions, and day-trip packing list that apply across the whole Tuscany leg.</p>
+  <div class="essentials-grid">
+    <div>
+      <h3>Arrival Rail Sequence</h3>
+      <ul>
+        <li><span class="rail-step">FCO → Roma Termini:</span> Leonardo Express.</li>
+        <li><span class="rail-step">Roma Termini → Firenze Santa Maria Novella:</span> reserved high-speed Frecciarossa or Italo train.</li>
+        <li><span class="rail-step">Firenze SMN → Florence Airport:</span> T2 tram to the airport rental-car area.</li>
+        <li>Use separate contactless payment methods for the paying adults on Florence transit; verify current child-fare rules before travel.</li>
+        <li>Keep generous connection buffers after the overnight flight — the Monday afternoon plan is intentionally flexible.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Driving Cautions</h3>
+      <ul>
+        <li>Avoid city-center ZTL zones. Navigate directly to named garages and official parking areas.</li>
+        <li>Keep luggage hidden in the trunk before arriving at sightseeing parking lots.</li>
+        <li>Tuscan roads can be narrow and winding. Build more time than the navigation estimate, especially after dark.</li>
+        <li>One adult should remain a designated driver on wine-tour day.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Packing for Day Trips</h3>
+      <ul>
+        <li>Lightweight stroller or compact carrier</li>
+        <li>Refillable water bottles</li>
+        <li>Small snack kit</li>
+        <li>Sun hats and sunscreen</li>
+        <li>Portable charger</li>
+        <li>Photo ID for ticketed tours</li>
+        <li>A small layer for churches and air-conditioned trains</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- TRIP MAP -->
+<section class="tripmap" id="day-tripmap">
+  <div class="eyebrow">Every stop, one map</div>
+  <h2>Trip map</h2>
+  <p class="lede">Every pin from the itinerary in one place. Filter by day, then tap a pin for the time and plan for that stop.</p>
+  <div class="tripmap-filters" id="tripmap-filters">
+    <button class="tripmap-filter active" data-day="all" style="--filter-accent:#8A7A5C">All days</button>
+    <button class="tripmap-filter" data-day="mon" style="--filter-accent:#57697A">Mon · Arrival</button>
+    <button class="tripmap-filter" data-day="tue" style="--filter-accent:#66703F">Tue · Palagina</button>
+    <button class="tripmap-filter" data-day="wed" style="--filter-accent:#AE4A2C">Wed · Bologna</button>
+    <button class="tripmap-filter" data-day="thu" style="--filter-accent:#B7912A">Thu · Florence → Rome</button>
+    <button class="tripmap-filter" data-day="fri" style="--filter-accent:#9A3B24">Fri · Ancient Rome</button>
+    <button class="tripmap-filter" data-day="sat" style="--filter-accent:#8A6A22">Sat · Vatican</button>
+  </div>
+  <div id="trip-map"></div>
+</section>
+
+<!-- MONDAY: ARRIVAL -->
+<section class="day" id="day-arrival" style="--accent:var(--c-arrival)">
   <div class="reveal">
+    <div class="day-banner">
+      <svg viewBox="0 0 1200 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <defs>
+          <linearGradient id="skyArrival" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#2E3B4A"/>
+            <stop offset="1" stop-color="#6B7F91"/>
+          </linearGradient>
+        </defs>
+        <rect width="1200" height="200" fill="url(#skyArrival)"/>
+        <circle cx="1010" cy="55" r="26" fill="#F1E9D8" opacity="0.9"/>
+        <path d="M90,50 Q550,-10 1060,95" stroke="#F1E9D8" stroke-width="2" stroke-dasharray="7 9" fill="none" opacity="0.55"/>
+        <polygon points="1060,95 1084,88 1076,104 1058,108" fill="#F1E9D8" opacity="0.9"/>
+        <path d="M0,200 L0,158 L55,122 L115,160 L175,128 L235,162 L300,140 L365,168 L430,144 L500,172 L565,150 L630,176 L700,152 L765,172 L830,146 L900,170 L965,150 L1030,174 L1090,152 L1150,170 L1200,158 L1200,200 Z" fill="#EFE6D2" opacity="0.16"/>
+      </svg>
+    </div>
     <div class="day-head">
       <span class="day-num">01</span>
-      <h2>Arrival, Florence &amp; Impruneta</h2>
+      <h2>Arrival in Tuscany</h2>
     </div>
-    <div class="day-sub">Monday, September 7 <span class="base-pill">Base: Impruneta</span></div>
-    <p style="margin-top:1rem; color:var(--ink-soft); max-width:60ch;">A deliberately easy landing day after the overnight flight.</p>
+    <div class="day-sub">Monday, September 7 <span class="base-pill">Base: Casa di Miei, Impruneta</span></div>
+    <p style="margin-top:1rem; color:var(--ink-soft); max-width:60ch;">Easy first taste of Impruneta before check-in.</p>
 
     <div class="timeline">
-      <div class="t-row"><div class="t-time">9:00 AM</div><div class="t-content"><h4>Arrive at Rome Fiumicino Airport</h4><p>Allow roughly 90 minutes for immigration, baggage claim and the walk to the airport train station.</p></div></div>
-      <div class="t-row"><div class="t-time">11:00 AM</div><div class="t-content"><h4>Travel to Florence</h4><p>Take the airport connection into Rome, then continue by high-speed train to Firenze Santa Maria Novella. Use your confirmed train plan.</p></div></div>
-      <div class="t-row"><div class="t-time">1:30 PM</div><div class="t-content"><h4>Pick up rental cars</h4><p>Choose a pickup location that avoids driving deep into Florence's restricted ZTL whenever possible. Load luggage before beginning the city walk.</p></div></div>
-      <div class="t-row"><div class="t-time">2:00 PM</div><div class="t-content"><h4>Casual lunch at Mercato Centrale</h4><p>An easy first meal where everyone can choose pasta, pizza, sandwiches or other local specialties without committing to a long formal lunch.</p></div></div>
-      <div class="t-row"><div class="t-time">3:15 PM</div><div class="t-content"><h4>Easy Florence highlights walk</h4><p>Follow a relaxed loop through Piazza del Duomo, Piazza della Repubblica, Piazza della Signoria and Ponte Vecchio. Skip museums today.</p></div></div>
-      <div class="t-row"><div class="t-time">4:30 PM</div><div class="t-content"><h4>Gelato and reset</h4><p>Stop at Gelateria dei Neri, Perché No! or La Carraia. Sit down, hydrate and decide whether the kids have energy for another short stroll.</p></div></div>
-      <div class="t-row"><div class="t-time">5:30 PM</div><div class="t-content"><h4>Drive to Impruneta</h4><p>Stop at a Coop or Conad for breakfast food, water, snacks and anything needed for the Airbnb.</p></div></div>
-      <div class="t-row"><div class="t-time">7:00 PM</div><div class="t-content"><h4>Easy dinner and early bedtime</h4><p>Stay close to the Airbnb and keep dinner simple. The goal is to reset for Tuesday.</p></div></div>
+      <div class="t-row"><div class="t-time">Sun, 5:35 PM</div><div class="t-content"><h4>Depart Washington (IAD)</h4><p>United Airlines flight UA 884, overnight nonstop to Rome.</p></div></div>
+      <div class="t-row"><div class="t-time">8:15 AM</div><div class="t-content"><h4>Arrive FCO</h4><p>Immigration, baggage claim and walk to the airport rail station.</p></div></div>
+      <div class="t-row"><div class="t-time">Approx. 9:45</div><div class="t-content"><h4>Leonardo Express</h4><p>Nonstop rail to Roma Termini. Buy or validate tickets as required.</p></div></div>
+      <div class="t-row"><div class="t-time">Late morning</div><div class="t-content"><h4>High-speed train</h4><p>Roma Termini to Firenze Santa Maria Novella. Keep the ticket flexible enough for flight delays.</p></div></div>
+      <div class="t-row"><div class="t-time">Early afternoon</div><div class="t-content"><h4>T2 tram</h4><p>Florence station to Florence Airport for the rental-car pickup.</p></div></div>
+      <div class="t-row"><div class="t-time">Target 2:30 PM</div><div class="t-content"><h4>Rental car</h4><p>Collect car, install child seats, load luggage and drive toward Impruneta.</p></div></div>
+      <div class="t-row"><div class="t-time">~3:15 PM</div><div class="t-content"><h4>Explore Impruneta<a class="geo-link" href="https://www.google.com/maps/dir/?api=1&destination=43.685661,11.2543519&destination_place_id=ChIJsejSsf1NKhMRh8n8IWb-L-o&travelmode=driving" target="_blank" rel="noopener">directions</a></h4><p>Park near Piazza Buondelmonti. See the piazza and <a href="https://www.google.com/maps/place/?q=place_id:ChIJjaN5SwBNKhMRLniVp-JRUok" target="_blank" rel="noopener">Basilica di Santa Maria</a>; browse a terracotta shop and stop for a snack or gelato.</p></div></div>
+      <div class="t-row"><div class="t-time">~4:15 PM</div><div class="t-content"><h4>Groceries<a class="geo-link" href="https://www.google.com/maps/dir/?api=1&destination=43.6840297,11.2519121&destination_place_id=ChIJrULb3adNKhMRGSkwW8ct_OA&travelmode=driving" target="_blank" rel="noopener">directions</a></h4><p>Stop at Coop Impruneta for breakfast items, snacks, water and first-night supplies.</p></div></div>
+      <div class="t-row"><div class="t-time">~5:00 PM</div><div class="t-content"><h4>Check in<a class="geo-link" href="https://www.google.com/maps/dir/?api=1&destination=43.6764302,11.2635452&travelmode=driving" target="_blank" rel="noopener">directions</a></h4><p>Arrive at Casa di Miei, unpack and give everyone a real break before dinner.</p></div></div>
+      <div class="t-row"><div class="t-time">7:30 PM</div><div class="t-content"><h4>Dinner at <a href="https://www.bellavistaimpruneta.it" target="_blank" rel="noopener">Ristoro Bellavista</a></h4><p>Impruneta town center; reserve one table for all 8 and request a highchair if needed.</p></div></div>
     </div>
 
     <div class="notes">
-      <div class="eyebrow">Raffa Notes</div>
+      <div class="eyebrow">Delay Rule</div>
       <ul>
-        <li>Do not plan a timed attraction on arrival day.</li>
-        <li>Expect everyone's energy to drop sharply in the late afternoon.</li>
-        <li>Keep pajamas and next-day clothes easy to reach in the luggage.</li>
+        <li>If the rental car is delayed past about 3:00 PM, shorten or skip the Impruneta stroll. Prioritize groceries, Casa di Miei check-in, and the 7:30 PM Bellavista reservation.</li>
+      </ul>
+    </div>
+
+    <div class="notes choices">
+      <div class="eyebrow">Impruneta Arrival Ideas &amp; Parking</div>
+      <ul>
+        <li><strong>Piazza Buondelmonti:</strong> the main square, an easy first stop and introduction to the town.</li>
+        <li><strong>Basilica di Santa Maria all'Impruneta:</strong> step inside if open, or simply enjoy the piazza and facade.</li>
+        <li><strong>Terracotta browsing:</strong> look for a local shop; Fornace Agresti is an optional bonus only if timing and opening hours cooperate.</li>
+        <li>Use signed public parking near Piazza Buondelmonti and follow local restrictions — there's no need to drive into Florence on Monday.</li>
+        <li>Keep the stop compact and low-pressure so a flight or rail delay doesn't derail the evening. If everyone is tired, skip sightseeing and go directly to groceries and Casa di Miei.</li>
+        <li><strong>Coop Impruneta</strong> is most convenient for the Airbnb and a complete first-night shop. <strong>Coop Tavarnuzze</strong> is a larger backup if it falls naturally on the route. <strong>Forno Zini</strong> is an optional bakery add-on for bread and breakfast pastries.</li>
+      </ul>
+    </div>
+
+    <div class="notes">
+      <div class="eyebrow">Dinner: <a href="https://www.bellavistaimpruneta.it" target="_blank" rel="noopener">Ristoro Bellavista</a></div>
+      <ul>
+        <li>Best reservation time: 7:30 PM; reserve one table for all 8. Located beside Piazza Buondelmonti, so dinner keeps the first evening centered on Impruneta.</li>
+        <li>Family-friendly with straightforward pasta, chicken, potatoes and other child-friendly choices.</li>
+        <li>If the family is fading, ask whether takeaway is available or simplify dinner at the Airbnb.</li>
+      </ul>
+    </div>
+
+    <div class="notes">
+      <div class="eyebrow">Raffa Tip</div>
+      <ul>
+        <li>Monday is about arriving well, not sightseeing hard. A short walk through Impruneta, groceries, time at Casa di Miei, and Bellavista dinner is a successful first day.</li>
       </ul>
     </div>
   </div>
 </section>
 
-<!-- TUESDAY -->
-<section class="day" id="day-tue" style="--accent:var(--c-bologna)">
+<!-- TUESDAY: PALAGINA -->
+<section class="day" id="day-tue" style="--accent:var(--c-tuscany)">
   <div class="reveal">
+    <div class="day-banner">
+      <svg viewBox="0 0 1200 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <rect width="1200" height="200" fill="#E7DCC3"/>
+        <circle cx="1080" cy="45" r="24" fill="#C9A227" opacity="0.8"/>
+        <path d="M0,200 C220,110 420,150 620,95 C840,45 1020,110 1200,80 L1200,200 Z" fill="#66703F" opacity="0.3"/>
+        <path d="M0,200 C260,150 460,185 700,135 C900,100 1060,155 1200,130 L1200,200 Z" fill="#66703F" opacity="0.6"/>
+        <g fill="#3F4A28" opacity="0.85">
+          <path d="M120,168 L128,110 L136,168 Z"/><rect x="124" y="168" width="8" height="14"/>
+          <path d="M260,172 L268,120 L276,172 Z"/><rect x="264" y="172" width="8" height="12"/>
+          <path d="M420,158 L428,98 L436,158 Z"/><rect x="424" y="158" width="8" height="14"/>
+          <path d="M600,150 L608,92 L616,150 Z"/><rect x="604" y="150" width="8" height="14"/>
+          <path d="M760,168 L768,112 L776,168 Z"/><rect x="764" y="168" width="8" height="12"/>
+          <path d="M940,155 L948,100 L956,155 Z"/><rect x="944" y="155" width="8" height="14"/>
+          <path d="M1080,168 L1088,116 L1096,168 Z"/><rect x="1084" y="168" width="8" height="12"/>
+        </g>
+        <g stroke="#3F4A28" stroke-width="2" opacity="0.35">
+          <path d="M0,190 L1200,150"/>
+          <path d="M0,196 L1200,168"/>
+        </g>
+      </svg>
+    </div>
     <div class="day-head">
       <span class="day-num">02</span>
-      <h2>Bologna Food Adventure</h2>
+      <h2>Palagina &amp; the Chianti Hills</h2>
     </div>
-    <div class="day-sub">Tuesday, September 8 <span class="base-pill">Base: Impruneta</span></div>
-    <p style="margin-top:1rem; color:var(--ink-soft); max-width:60ch;">A full day built around regional specialties, markets and easy sightseeing.</p>
+    <div class="day-sub">Tuesday, September 8 <span class="base-pill">Base: Casa di Miei</span></div>
+    <p style="margin-top:1rem; color:var(--ink-soft); max-width:60ch;">Chianti villages by day, a Florence sunset, and a San Niccolò dinner by night.</p>
 
     <div class="timeline">
-      <div class="t-row"><div class="t-time">7:00 AM</div><div class="t-content"><h4>Breakfast at the Airbnb</h4><p>Quick breakfast; bring water plus a few kid snacks for the drive.</p></div></div>
-      <div class="t-row"><div class="t-time">8:00 AM</div><div class="t-content"><h4>Leave Impruneta for Bologna</h4><p>Allow approximately 1 hour 30 minutes, plus parking time. A central garage outside restricted zones is the simplest option.</p></div></div>
-      <div class="t-row"><div class="t-time">9:45 AM</div><div class="t-content"><h4>Coffee and pastry</h4><p>Start at Caffè Terzi or another traditional bar near the center.</p></div></div>
-      <div class="t-row"><div class="t-time">10:15 AM</div><div class="t-content"><h4>Explore the Quadrilatero</h4><p>Browse the historic food district and sample Parmigiano Reggiano, mortadella, prosciutto and balsamic vinegar.</p></div></div>
-      <div class="t-row"><div class="t-time">11:30 AM</div><div class="t-content"><h4>Fresh pasta lunch</h4><p>Try Sfoglia Rina, Tamburini or Salumeria Simoni. Order several dishes to share — tagliatelle al ragù, tortellini and tortelloni.</p></div></div>
-      <div class="t-row"><div class="t-time">1:00 PM</div><div class="t-content"><h4>Mercato delle Erbe</h4><p>Continue the food experience at the market, with time to browse local produce, cheese and specialty shops.</p></div></div>
-      <div class="t-row"><div class="t-time">2:00 PM</div><div class="t-content"><h4>Gelato stop</h4><p>Cremeria Santo Stefano is a strong destination; another excellent gelateria nearby works just as well if the route changes.</p></div></div>
-      <div class="t-row"><div class="t-time">2:30 PM</div><div class="t-content"><h4>Piazza Maggiore and easy sightseeing</h4><p>Walk Piazza Maggiore, see the Basilica of San Petronio and explore the surrounding porticoes and side streets.</p></div></div>
-      <div class="t-row"><div class="t-time">3:45 PM</div><div class="t-content"><h4>Kid-friendly optional activity</h4><p>Choose the San Luca Express tourist train, or continue wandering and shopping. Skip the tower climb unless everyone is enthusiastic.</p></div></div>
-      <div class="t-row"><div class="t-time">5:00 PM</div><div class="t-content"><h4>Return to Impruneta</h4><p>Head back before the evening traffic builds.</p></div></div>
-      <div class="t-row"><div class="t-time">7:00 PM</div><div class="t-content"><h4>Dinner near the Airbnb</h4><p>Keep dinner casual after the food-heavy day.</p></div></div>
+      <div class="t-row"><div class="t-time">8:15 AM</div><div class="t-content"><h4>Breakfast</h4><p>Unhurried breakfast at Casa di Miei; pack water, hats and a light snack.</p></div></div>
+      <div class="t-row"><div class="t-time">8:45 AM</div><div class="t-content"><h4>Depart</h4><p>Allow extra time on winding roads and arrive before the experience begins.</p></div></div>
+      <div class="t-row"><div class="t-time">9:30 AM</div><div class="t-content"><h4>Arrive <a href="https://palagina.it" target="_blank" rel="noopener">Palagina</a></h4><p>Park, use restrooms and let the children settle into the farm environment.</p></div></div>
+      <div class="t-row"><div class="t-time">10:00 AM</div><div class="t-content"><h4>Wine + olive-oil tour</h4><p>Family-friendly Palagina experience. One adult remains the designated driver.</p></div></div>
+      <div class="t-row"><div class="t-time">12:15 PM</div><div class="t-content"><h4>Lunch at Palagina — Confirmed</h4><p>Reserved for all 8 immediately after the tour; request outdoor or garden-adjacent seating if weather permits.</p></div></div>
+      <div class="t-row"><div class="t-time">1:45 PM</div><div class="t-content"><h4>Depart Palagina</h4><p>Begin the scenic Chianti loop.</p></div></div>
+      <div class="t-row"><div class="t-time">2:15–3:15 PM</div><div class="t-content"><h4>Montefioralle<a class="geo-link" href="https://www.google.com/maps/dir/?api=1&destination=43.5808099,11.3030483&destination_place_id=ChIJh6b2eQZLKhMRsBhIWpMsCAo&travelmode=driving" target="_blank" rel="noopener">directions</a></h4><p>Walk the compact medieval village loop and enjoy vineyard views.</p></div></div>
+      <div class="t-row"><div class="t-time">3:30–5:00 PM</div><div class="t-content"><h4>Greve in Chianti</h4><p>Piazza Matteotti, Falorni, local shops, gelato and café time.</p></div></div>
+      <div class="t-row"><div class="t-time">5:00 PM</div><div class="t-content"><h4>Return to the Airbnb</h4><p>Drive back to Casa di Miei for a quick reset, shower/change and short rest.</p></div></div>
+      <div class="t-row"><div class="t-time">~6:15 PM</div><div class="t-content"><h4>Leave for Florence<a class="geo-link" href="https://www.google.com/maps/dir/?api=1&destination=43.7629314,11.2650561&destination_place_id=ChIJQzhmQ_dTKhMRGVENguFo97Q&travelmode=driving" target="_blank" rel="noopener">directions</a></h4><p>Drive toward Piazzale Michelangelo; allow parking time and keep Beccaria as the backup garage.</p></div></div>
+      <div class="t-row"><div class="t-time">~6:45 PM</div><div class="t-content"><h4>Piazzale Michelangelo</h4><p>Park if space is available, enjoy the panoramic view and sunset atmosphere, then walk downhill to San Niccolò.</p></div></div>
+      <div class="t-row"><div class="t-time">7:30 PM</div><div class="t-content"><h4>Dinner at <a href="https://www.osteriadelbricco.com" target="_blank" rel="noopener">Hostaria del Bricco</a> — Awaiting confirmation</h4><p>Via di San Niccolò 8R. Message sent requesting a table for 8 at 7:30 PM; confirmation still pending. After dinner, walk back uphill to the car and return to Impruneta.</p></div></div>
     </div>
 
     <div class="notes">
-      <div class="eyebrow">Raffa Notes</div>
+      <div class="eyebrow">Harvest Question</div>
       <ul>
-        <li>Bologna is best treated as a grazing day — share dishes rather than ordering a full meal at every stop.</li>
-        <li>Porticoes make this day workable even in light rain or strong sun.</li>
+        <li>September may overlap with vendemmia. Ask Palagina whether the family can observe grape picking, sorting or early winemaking activity during the visit.</li>
+      </ul>
+    </div>
+
+    <div class="notes choices">
+      <div class="eyebrow">Montefioralle &amp; Greve Parking Guide</div>
+      <ul>
+        <li><strong>Montefioralle:</strong> navigate to signed visitor parking outside the historic village — do not drive through the medieval center. Primary: Piazza Santo Stefano when available. Backup: the signed gravel visitor lot below or outside the village approach. Expect uneven stone paving and slopes; a carrier may be easier than a large stroller.</li>
+        <li><strong>Greve in Chianti:</strong> navigate to a lot outside the historic-center ZTL, not directly into Piazza Matteotti. Options: <a href="https://www.google.com/maps/dir/?api=1&destination=43.5825767,11.3189625&destination_place_id=ChIJhSe0wxdLKhMR77XDVuoF0TA&travelmode=driving" target="_blank" rel="noopener">Piazza Resistenza</a>, <a href="https://www.google.com/maps/dir/?api=1&destination=43.5842863,11.3172904&destination_place_id=ChIJk1Ib-RZLKhMRQrNVI7og9jQ&travelmode=driving" target="_blank" rel="noopener">Piazzale Ferrante Mori</a>, or <a href="https://www.google.com/maps/dir/?api=1&destination=43.5845553,11.3173191&destination_place_id=ChIJWwHGNEJLKhMR_540ZR-n3VA&travelmode=driving" target="_blank" rel="noopener">Piazzale Finetti</a>. Pay at the meter or approved app and keep the receipt visible. ZTL hours can change seasonally — follow current signs.</li>
+        <li><strong>In Greve:</strong> walk the arcades around Piazza Matteotti, browse Antica Macelleria Falorni for salumi and cheese, and finish with gelato or coffee rather than another formal tour.</li>
+      </ul>
+    </div>
+
+    <div class="notes">
+      <div class="eyebrow">Dinner: <a href="https://www.osteriadelbricco.com" target="_blank" rel="noopener">Hostaria del Bricco</a> in San Niccolò</div>
+      <ul>
+        <li>Requested table for 8 at 7:30 PM; awaiting the restaurant's confirmation. Leave Greve around 5:00 PM, reset at Casa di Miei, then depart for Florence around 6:15 PM.</li>
+        <li>Primary parking: paid spaces around <a href="https://www.google.com/maps/place/?q=place_id:ChIJQzhmQ_dTKhMRGVENguFo97Q" target="_blank" rel="noopener">Piazzale Michelangelo</a>. Backup: <a href="https://www.google.com/maps/dir/?api=1&destination=43.7700012,11.2708203&destination_place_id=ChIJtd5pigtUKhMR-lprDu5z-x0&travelmode=driving" target="_blank" rel="noopener">Parcheggio Beccaria</a> if the piazzale is full.</li>
+        <li>Enjoy the view before dinner, then walk downhill to Via di San Niccolò. The return walk to Piazzale Michelangelo is uphill.</li>
+      </ul>
+    </div>
+
+    <div class="notes">
+      <div class="eyebrow">Raffa Tip</div>
+      <ul>
+        <li>Tuesday now has two acts: Chianti countryside by day, then a Florence sunset and San Niccolò dinner. Keep Greve departure close to 5:00 PM so the evening never feels rushed.</li>
       </ul>
     </div>
   </div>
 </section>
 
-<!-- WEDNESDAY -->
-<section class="day" id="day-wed" style="--accent:var(--c-tuscany)">
+<!-- WEDNESDAY: BOLOGNA -->
+<section class="day" id="day-wed" style="--accent:var(--c-bologna)">
   <div class="reveal">
+    <div class="day-banner">
+      <svg viewBox="0 0 1200 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <rect width="1200" height="200" fill="#E7DCC3"/>
+        <g fill="#AE4A2C" opacity="0.85">
+          <path d="M20,200 L20,140 A20,20 0 0 1 60,140 L60,200 Z"/>
+          <path d="M100,200 L100,140 A20,20 0 0 1 140,140 L140,200 Z"/>
+          <path d="M180,200 L180,140 A20,20 0 0 1 220,140 L220,200 Z"/>
+          <path d="M260,200 L260,140 A20,20 0 0 1 300,140 L300,200 Z"/>
+          <path d="M340,200 L340,140 A20,20 0 0 1 380,140 L380,200 Z"/>
+          <path d="M420,200 L420,140 A20,20 0 0 1 460,140 L460,200 Z"/>
+          <path d="M540,200 L540,140 A20,20 0 0 1 580,140 L580,200 Z"/>
+          <path d="M620,200 L620,140 A20,20 0 0 1 660,140 L660,200 Z"/>
+          <path d="M700,200 L700,140 A20,20 0 0 1 740,140 L740,200 Z"/>
+          <path d="M780,200 L780,140 A20,20 0 0 1 820,140 L820,200 Z"/>
+        </g>
+        <g fill="#7A331D">
+          <rect x="900" y="30" width="26" height="170" transform="skewX(-2)"/>
+          <rect x="960" y="60" width="22" height="140"/>
+        </g>
+        <rect x="0" y="196" width="1200" height="4" fill="#7A331D" opacity="0.5"/>
+      </svg>
+    </div>
     <div class="day-head">
       <span class="day-num">03</span>
-      <h2>Tuscan Countryside Day</h2>
+      <h2>Bologna Food &amp; History Day</h2>
     </div>
-    <div class="day-sub">Wednesday, September 9 <span class="base-pill">Base: Impruneta</span></div>
-    <p style="margin-top:1rem; color:var(--ink-soft); max-width:60ch;">A slower family day with farm experiences, wine, villages and open space.</p>
+    <div class="day-sub">Wednesday, September 9 <span class="base-pill">Base: Casa di Miei</span></div>
+    <p style="margin-top:1rem; color:var(--ink-soft); max-width:60ch;">A full city day with two real recharge periods and a traditional dinner.</p>
 
     <div class="timeline">
-      <div class="t-row"><div class="t-time">8:30 AM</div><div class="t-content"><h4>Slow breakfast</h4><p>Sleep in, enjoy the Airbnb and give the kids an unhurried start.</p></div></div>
-      <div class="t-row"><div class="t-time">10:00 AM</div><div class="t-content"><h4>Leave for the countryside experience</h4><p>Drive toward a family-friendly estate. Fattoria di Maiano is the best fit if farm animals and outdoor space are priorities.</p></div></div>
-      <div class="t-row"><div class="t-time">10:30 AM</div><div class="t-content"><h4>Farm, olive oil and wine experience</h4><p>Adults can enjoy a tasting while the children explore the farm setting, animals and walking areas. Confirm the family experience and tasting time directly with the estate.</p></div></div>
-      <div class="t-row"><div class="t-time">12:30 PM</div><div class="t-content"><h4>Lunch at or near the estate</h4><p>Choose the estate restaurant if available, or a nearby trattoria with outdoor seating.</p></div></div>
-      <div class="t-row"><div class="t-time">2:30 PM</div><div class="t-content"><h4>Explore Greve in Chianti</h4><p>Walk the main piazza, browse local food and wine shops, and take an afternoon coffee or gelato break.</p></div></div>
-      <div class="t-row"><div class="t-time">4:00 PM</div><div class="t-content"><h4>Optional Montefioralle stop</h4><p>Visit the small medieval hilltop village above Greve. Keep this optional so the day still feels relaxed.</p></div></div>
-      <div class="t-row"><div class="t-time">5:30 PM</div><div class="t-content"><h4>Return to Impruneta</h4><p>Enjoy downtime at the Airbnb before dinner.</p></div></div>
-      <div class="t-row"><div class="t-time">7:00 PM</div><div class="t-content"><h4>Dinner in or near Impruneta</h4><p>Cook at the Airbnb or choose a casual local trattoria. Peposo, the area's slow-cooked peppery beef specialty, is worth trying.</p></div></div>
+      <div class="t-row"><div class="t-time">7:00 AM</div><div class="t-content"><h4>Leave Impruneta</h4><p>Breakfast at the Airbnb; bring highway snacks and water.</p></div></div>
+      <div class="t-row"><div class="t-time">8:30–8:45 AM</div><div class="t-content"><h4>Park at Ex-Staveco<a class="geo-link" href="https://www.google.com/maps/dir/?api=1&destination=44.4857057,11.3444605&destination_place_id=ChIJB4sUt6_Vf0cRrqSDcdUe4nI&travelmode=driving" target="_blank" rel="noopener">directions</a></h4><p>Outside the central ZTL; leave valuables hidden and walk into the center.</p></div></div>
+      <div class="t-row"><div class="t-time">9:00–10:15 AM</div><div class="t-content"><h4><a href="https://www.google.com/maps/place/?q=place_id:ChIJYf5xlcfUf0cRhXOcjl6NDQM" target="_blank" rel="noopener">Santo Stefano</a> route</h4><p>Piazza Santo Stefano, basilica complex, Corte Isolani and porticoes.</p></div></div>
+      <div class="t-row"><div class="t-time">10:15–11:20 AM</div><div class="t-content"><h4>Two Towers + Quadrilatero</h4><p>See the towers from street level and browse Bologna's historic food district.</p></div></div>
+      <div class="t-row"><div class="t-time">11:30 AM</div><div class="t-content"><h4>Lunch at <a href="https://www.sfogliarina.it/en/" target="_blank" rel="noopener">Sfoglia Rina</a></h4><p>Arrive at opening for handmade pasta with the shortest likely wait.</p></div></div>
+      <div class="t-row"><div class="t-time">12:30–1:30 PM</div><div class="t-content"><h4><a href="https://www.google.com/maps/place/?q=place_id:ChIJI6gJiJXUf0cRR3IrYSi4xgo" target="_blank" rel="noopener">Piazza Maggiore</a></h4><p>San Petronio, Neptune, Archiginnasio area and the historic center.</p></div></div>
+      <div class="t-row"><div class="t-time">1:30–2:30 PM</div><div class="t-content"><h4>Salaborsa recharge</h4><p>Indoor seating, restrooms, children's spaces and the archaeological floor.</p></div></div>
+      <div class="t-row"><div class="t-time">2:45–4:30 PM</div><div class="t-content"><h4>San Luca Express</h4><p>Seated sightseeing and optional sanctuary visit; confirm departure times in advance.</p></div></div>
+      <div class="t-row"><div class="t-time">4:30–5:30 PM</div><div class="t-content"><h4>Flexible hour</h4><p>Gelato, the Via Piella canal window, shopping, or simply sitting under the porticoes.</p></div></div>
+      <div class="t-row"><div class="t-time">5:30–6:45 PM</div><div class="t-content"><h4><a href="https://www.google.com/maps/place/?q=place_id:ChIJLwKOhMXUf0cRiLrCD6oTfS0" target="_blank" rel="noopener">Giardini Margherita</a></h4><p>Outdoor reset, lawns and play time before dinner.</p></div></div>
+      <div class="t-row"><div class="t-time">7:30 PM</div><div class="t-content"><h4><a href="https://osteriaal15.eatbu.com/?lang=en" target="_blank" rel="noopener">Osteria Al 15</a> — Awaiting confirmation</h4><p>Traditional Bolognese dinner; reached out requesting a table for 8 and mentioning children ages 3 and 5, confirmation still pending.</p></div></div>
+      <div class="t-row"><div class="t-time">8:45–9:00 PM</div><div class="t-content"><h4>Return to car</h4><p>Walk back to Ex-Staveco and begin the drive to Impruneta.</p></div></div>
+      <div class="t-row"><div class="t-time">10:15–10:45 PM</div><div class="t-content"><h4>Arrive Casa di Miei</h4><p>Quiet return and immediate bedtime.</p></div></div>
     </div>
 
     <div class="notes">
-      <div class="eyebrow">Raffa Notes</div>
+      <div class="eyebrow">ZTL Rule</div>
       <ul>
-        <li>Reserve the winery or farm experience in advance and confirm that children are welcome.</li>
-        <li>Avoid stacking multiple wineries — one quality experience is enough with kids.</li>
+        <li>Set navigation directly to <a href="https://www.google.com/maps/dir/?api=1&destination=44.4857057,11.3444605&destination_place_id=ChIJB4sUt6_Vf0cRrqSDcdUe4nI&travelmode=driving" target="_blank" rel="noopener">Parcheggio Ex-Staveco</a>. Do not accept last-minute shortcuts through the historic center, where camera-enforced restrictions operate.</li>
+      </ul>
+    </div>
+
+    <div class="notes choices">
+      <div class="eyebrow">If Timing Slips — Priority Order</div>
+      <ul>
+        <li>Protect the Quadrilatero, handmade pasta, Piazza Maggiore, Santo Stefano, and the two recharge stops (Salaborsa and Giardini Margherita).</li>
+        <li>Via Piella canal window and the Archiginnasio Anatomical Theatre are the easiest optional cuts.</li>
+      </ul>
+    </div>
+
+    <div class="notes choices">
+      <div class="eyebrow">Bologna Must-Eat Shortlist</div>
+      <ul>
+        <li>Tagliatelle al ragù · Tortellini in brodo · Tortelloni</li>
+        <li>Mortadella · Parmigiano-Reggiano</li>
+        <li>Crescentine or tigelle, when available</li>
+        <li>Traditional balsamic vinegar tasting · a local dessert such as zuppa inglese · artisan gelato</li>
+      </ul>
+    </div>
+
+    <div class="notes">
+      <div class="eyebrow">Rain Plan &amp; Dinner Backups</div>
+      <ul>
+        <li>Bologna's porticoes make bad weather manageable — extend Salaborsa, browse the Quadrilatero slowly, and shorten Giardini Margherita rather than abandoning the day.</li>
+        <li>Dinner backups if Osteria Al 15 isn't available: Trattoria Amedeo, Trattoria Anna Maria (reserve well ahead), or Trattoria da Me.</li>
       </ul>
     </div>
   </div>
 </section>
 
-<!-- THURSDAY -->
+<!-- THURSDAY: FLORENCE -> ROME -->
 <section class="day" id="day-thu" style="--accent:var(--c-florence)">
   <div class="reveal">
+    <div class="day-banner">
+      <svg viewBox="0 0 1200 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <rect width="1200" height="200" fill="#EFE6D2"/>
+        <g fill="#B7912A">
+          <rect x="560" y="60" width="70" height="120"/>
+          <path d="M560,60 Q595,10 630,60 Z"/>
+          <circle cx="595" cy="8" r="6"/>
+          <rect x="470" y="20" width="24" height="160"/>
+          <rect x="466" y="20" width="32" height="8"/>
+        </g>
+        <g fill="#8A6A22" opacity="0.55">
+          <rect x="660" y="90" width="18" height="90"/>
+          <rect x="690" y="70" width="18" height="110"/>
+        </g>
+        <g>
+          <rect x="120" y="150" width="90" height="34" rx="6" fill="#B7912A"/>
+          <circle cx="140" cy="188" r="9" fill="#5B6672"/>
+          <circle cx="192" cy="188" r="9" fill="#5B6672"/>
+          <path d="M40,150 L120,150" stroke="#B7912A" stroke-width="3" stroke-dasharray="10 8" opacity="0.6"/>
+          <path d="M0,150 L30,150" stroke="#B7912A" stroke-width="3" stroke-dasharray="10 8" opacity="0.35"/>
+        </g>
+        <rect x="0" y="196" width="1200" height="4" fill="#B7912A" opacity="0.4"/>
+      </svg>
+    </div>
     <div class="day-head">
       <span class="day-num">04</span>
-      <h2>Florence Highlights &amp; Train to Rome</h2>
+      <h2>Florence &amp; Transfer to Rome</h2>
     </div>
     <div class="day-sub">Thursday, September 10 <span class="base-pill">Base: Rome (from tonight)</span></div>
-    <p style="margin-top:1rem; color:var(--ink-soft); max-width:60ch;">A focused sightseeing day with luggage logistics and a firm departure time.</p>
+    <p style="margin-top:1rem; color:var(--ink-soft); max-width:60ch;">Renaissance highlights without risking the evening train.</p>
 
     <div class="timeline">
-      <div class="t-row"><div class="t-time">7:30 AM</div><div class="t-content"><h4>Breakfast, pack and leave Impruneta</h4><p>Build in extra time for final packing and the drive into Florence.</p></div></div>
-      <div class="t-row"><div class="t-time">9:00 AM</div><div class="t-content"><h4>Return rental cars and store luggage</h4><p>Return the cars, then leave luggage at your hotel, the station, or a confirmed storage facility.</p></div></div>
-      <div class="t-row"><div class="t-time">10:00 AM</div><div class="t-content"><h4>Accademia Gallery</h4><p>Book a timed entry and allow about 75–90 minutes to see Michelangelo's David and the gallery highlights.</p></div></div>
-      <div class="t-row"><div class="t-time">11:30 AM</div><div class="t-content"><h4>Duomo district</h4><p>Walk around the cathedral, Baptistery and Giotto's Bell Tower. Only add a climb if tickets are reserved and the family wants the stairs.</p></div></div>
-      <div class="t-row"><div class="t-time">1:00 PM</div><div class="t-content"><h4>Lunch</h4><p>Choose Mercato Centrale for flexibility or Trattoria ZaZa for a seated Tuscan meal.</p></div></div>
-      <div class="t-row"><div class="t-time">2:15 PM</div><div class="t-content"><h4>Ponte Vecchio and Oltrarno</h4><p>Cross the river, browse artisan workshops and enjoy a relaxed final walk through Florence.</p></div></div>
-      <div class="t-row"><div class="t-time">3:30 PM</div><div class="t-content"><h4>Piazzale Michelangelo</h4><p>Take a taxi for the panoramic city view, then return directly toward the station.</p></div></div>
-      <div class="t-row"><div class="t-time">4:20 PM</div><div class="t-content"><h4>Collect luggage and board</h4><p>Be at Santa Maria Novella with enough time to retrieve luggage, find the platform and settle in.</p></div></div>
-      <div class="t-row"><div class="t-time">5:00 PM</div><div class="t-content"><h4>Train to Rome</h4><p>Travel to Rome, check into your accommodations and have dinner nearby.</p></div></div>
+      <div class="t-row"><div class="t-time">7:00 AM</div><div class="t-content"><h4>Leave Casa di Miei</h4><p>Breakfast at the Airbnb, finish packing, check out and leave with all luggage.</p></div></div>
+      <div class="t-row"><div class="t-time">7:30–8:00 AM</div><div class="t-content"><h4>Drive to Florence Airport (FLR)<a class="geo-link" href="https://www.google.com/maps/dir/?api=1&destination=43.8094619,11.2027587&destination_place_id=ChIJV8LI2QBXKhMRsibZbXbkEvI&travelmode=driving" target="_blank" rel="noopener">directions</a></h4><p>Return the rental car at the airport rather than driving into central Florence.</p></div></div>
+      <div class="t-row"><div class="t-time">~8:15 AM</div><div class="t-content"><h4>T2 to Firenze SMN</h4><p>Take the T2 tram toward Santa Maria Novella.</p></div></div>
+      <div class="t-row"><div class="t-time">~8:45 AM</div><div class="t-content"><h4>Store luggage</h4><p>Use a reputable staffed luggage-storage option near Firenze SMN.</p></div></div>
+      <div class="t-row"><div class="t-time">9:00–9:45 AM</div><div class="t-content"><h4><a href="https://www.google.com/maps/place/?q=place_id:ChIJb9JLOwJUKhMRrhLYS5q4NI0" target="_blank" rel="noopener">Piazza del Duomo</a></h4><p>Cathedral exterior, Brunelleschi's Dome, Giotto's Bell Tower and Baptistery. Keep this exterior-focused.</p></div></div>
+      <div class="t-row"><div class="t-time">9:45–10:15 AM</div><div class="t-content"><h4>Piazza della Repubblica</h4><p>Walk the piazza; optional antique carousel ride for the kids.</p></div></div>
+      <div class="t-row"><div class="t-time">10:15–11:00 AM</div><div class="t-content"><h4>Piazza della Signoria</h4><p>Palazzo Vecchio, Loggia dei Lanzi, Fountain of Neptune and outdoor sculpture.</p></div></div>
+      <div class="t-row"><div class="t-time">11:00–11:40 AM</div><div class="t-content"><h4>Quick Florentine lunch</h4><p>Choose I Fratellini near Signoria or La Divina Schiacciata closer to Accademia. Finish by 11:45.</p></div></div>
+      <div class="t-row"><div class="t-time">12:15–1:30 PM</div><div class="t-content"><h4><a href="https://www.galleriaaccademiafirenze.it/en/" target="_blank" rel="noopener">Galleria dell'Accademia</a></h4><p>Confirmed timed entry. Prioritize Michelangelo's David, the Prisoners/Slaves and key galleries.</p></div></div>
+      <div class="t-row"><div class="t-time">1:30–2:30 PM</div><div class="t-content"><h4>Walk + <a href="https://www.google.com/maps/place/?q=place_id:ChIJZ7bcoqpWKhMR6ALnMOgKMUA" target="_blank" rel="noopener">Ponte Vecchio</a></h4><p>Walk south through the historic center, then cross Ponte Vecchio and enjoy the Arno views.</p></div></div>
+      <div class="t-row"><div class="t-time">2:30–4:00 PM</div><div class="t-content"><h4>Oltrarno + Santo Spirito</h4><p>Wander artisan streets, small shops and Piazza Santo Spirito at a relaxed pace.</p></div></div>
+      <div class="t-row"><div class="t-time">~4:00 PM</div><div class="t-content"><h4>Gelato break</h4><p>Recharge before the walk back toward the station.</p></div></div>
+      <div class="t-row"><div class="t-time">4:15–5:15 PM</div><div class="t-content"><h4>Ponte Santa Trinita + luggage</h4><p>Walk back via Ponte Santa Trinita for the Ponte Vecchio view, then retrieve luggage near SMN.</p></div></div>
+      <div class="t-row"><div class="t-time">~5:20 PM</div><div class="t-content"><h4>At <a href="https://www.google.com/maps/place/?q=place_id:ChIJiVAKEaVWKhMRKcPGvSboWBk" target="_blank" rel="noopener">Firenze SMN</a></h4><p>Be inside the station with a comfortable buffer.</p></div></div>
+      <div class="t-row"><div class="t-time">~6:00 PM</div><div class="t-content"><h4>Train to Rome</h4><p>High-speed rail to <a href="https://www.google.com/maps/place/?q=place_id:ChIJ7__AOaRhLxMRlKlh8r59MKQ" target="_blank" rel="noopener">Roma Termini</a>. Split into taxis with luggage and head to Via Bocca di Leone 32 to check in and settle.</p></div></div>
+      <div class="t-row"><div class="t-time">~8:00 PM</div><div class="t-content"><h4>Takeout from <a href="https://www.google.com/maps/search/?api=1&query=Pasta+Urbana+Via+Belsiana+94+Rome" target="_blank" rel="noopener">Pasta Urbana</a></h4><p>Via Belsiana 94. Order takeout and bring it back to the Airbnb rather than sitting down — an easy, low-key arrival-night meal after everyone settles in.</p></div></div>
     </div>
 
     <div class="notes">
-      <div class="eyebrow">Raffa Notes</div>
+      <div class="eyebrow">Priority Order</div>
       <ul>
-        <li>Treat 3:45 PM as the hard cutoff for sightseeing.</li>
-        <li>A taxi to and from Piazzale Michelangelo protects time and energy.</li>
+        <li>Duomo and Signoria first, quick lunch, then the 12:15 Accademia. Enjoy Ponte Vecchio and Oltrarno afterward, but begin the walk back toward the station around 4:15 PM, aiming to be at Firenze SMN by about 5:20 PM for the 6:00 PM train.</li>
       </ul>
     </div>
   </div>
 </section>
 
-<!-- FRIDAY -->
+<!-- FRIDAY: ANCIENT ROME -->
 <section class="day" id="day-fri" style="--accent:var(--c-romeold)">
   <div class="reveal">
+    <div class="day-banner">
+      <svg viewBox="0 0 1200 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <rect width="1200" height="200" fill="#E7DCC3"/>
+        <rect x="0" y="70" width="1200" height="130" fill="#9A3B24" opacity="0.9"/>
+        <g fill="#E7DCC3">
+          <path d="M40,200 L40,110 A22,22 0 0 1 84,110 L84,200 Z"/>
+          <path d="M108,200 L108,110 A22,22 0 0 1 152,110 L152,200 Z"/>
+          <path d="M176,200 L176,110 A22,22 0 0 1 220,110 L220,200 Z"/>
+          <path d="M244,200 L244,110 A22,22 0 0 1 288,110 L288,200 Z"/>
+          <path d="M312,200 L312,110 A22,22 0 0 1 356,110 L356,200 Z"/>
+          <path d="M380,200 L380,110 A22,22 0 0 1 424,110 L424,200 Z"/>
+          <path d="M448,200 L448,110 A22,22 0 0 1 492,110 L492,200 Z"/>
+          <path d="M516,200 L516,110 A22,22 0 0 1 560,110 L560,200 Z"/>
+          <path d="M584,200 L584,110 A22,22 0 0 1 628,110 L628,200 Z"/>
+          <path d="M652,200 L652,110 A22,22 0 0 1 696,110 L696,200 Z"/>
+          <path d="M720,200 L720,110 A22,22 0 0 1 764,110 L764,200 Z"/>
+          <path d="M788,200 L788,110 A22,22 0 0 1 832,110 L832,200 Z"/>
+          <path d="M856,200 L856,110 A22,22 0 0 1 900,110 L900,200 Z"/>
+          <path d="M924,200 L924,110 A22,22 0 0 1 968,110 L968,200 Z"/>
+          <path d="M992,200 L992,110 A22,22 0 0 1 1036,110 L1036,200 Z"/>
+          <path d="M1060,200 L1060,110 A22,22 0 0 1 1104,110 L1104,200 Z"/>
+          <path d="M1128,200 L1128,110 A22,22 0 0 1 1172,110 L1172,200 Z"/>
+        </g>
+        <rect x="0" y="60" width="1200" height="10" fill="#7A2E1B"/>
+      </svg>
+    </div>
     <div class="day-head">
       <span class="day-num">05</span>
-      <h2>Ancient Rome Marathon</h2>
+      <h2>Ancient Rome</h2>
     </div>
     <div class="day-sub">Friday, September 11 <span class="base-pill">Base: Rome</span></div>
-    <p style="margin-top:1rem; color:var(--ink-soft); max-width:60ch;">The most ambitious day of the trip — major archaeological sites followed by the historic center.</p>
+    <p style="margin-top:1rem; color:var(--ink-soft); max-width:60ch;">A historic-center sunrise walk, the confirmed Ancient Rome tour, and a Trastevere dinner.</p>
 
     <div class="timeline">
-      <div class="t-row"><div class="t-time">7:30 AM</div><div class="t-content"><h4>Breakfast and depart</h4><p>Eat early and arrive near the Colosseum before your timed entry.</p></div></div>
-      <div class="t-row"><div class="t-time">8:30 AM</div><div class="t-content"><h4>Colosseum</h4><p>Book one of the earliest available entries. A family-oriented guide can make the history much more engaging for children.</p></div></div>
-      <div class="t-row"><div class="t-time">10:15 AM</div><div class="t-content"><h4>Roman Forum</h4><p>Continue into the Forum while temperatures and crowds are still manageable.</p></div></div>
-      <div class="t-row"><div class="t-time">11:45 AM</div><div class="t-content"><h4>Palatine Hill</h4><p>Finish the archaeological complex and enjoy the elevated views.</p></div></div>
-      <div class="t-row"><div class="t-time">1:15 PM</div><div class="t-content"><h4>Lunch in Monti</h4><p>Sit down for pizza, pasta or Roman classics. Ai Tre Scalini is a good neighborhood option; reserve elsewhere for a guaranteed table.</p></div></div>
-      <div class="t-row"><div class="t-time">2:45 PM</div><div class="t-content"><h4>Capitoline Hill and Piazza Venezia</h4><p>See the Capitoline area and the Victor Emmanuel II Monument. Use the elevator viewpoint only if timing and energy allow.</p></div></div>
-      <div class="t-row"><div class="t-time">4:00 PM</div><div class="t-content"><h4>Trevi Fountain</h4><p>Make the traditional coin toss, take photos and keep the stop relatively short.</p></div></div>
-      <div class="t-row"><div class="t-time">4:45 PM</div><div class="t-content"><h4>Pantheon</h4><p>Book timed entry if required and allow about 30–45 minutes.</p></div></div>
-      <div class="t-row"><div class="t-time">5:45 PM</div><div class="t-content"><h4>Piazza Navona</h4><p>Slow down, enjoy the fountains and give the kids room to recharge.</p></div></div>
-      <div class="t-row"><div class="t-time">7:15 PM</div><div class="t-content"><h4>Dinner in Trastevere</h4><p>Take a taxi if needed. Reserve dinner so the family is not waiting after a long day.</p></div></div>
-      <div class="t-row"><div class="t-time">9:00 PM</div><div class="t-content"><h4>Optional evening walk</h4><p>Stroll a short section of the Tiber, or return to the accommodations for an earlier night.</p></div></div>
+      <div class="t-row"><div class="t-time">7:00 AM</div><div class="t-content"><h4>Spanish Steps</h4><p>Start at Fontana della Barcaccia in Piazza di Spagna. Enjoy the steps and take photos before the crowds build.</p></div></div>
+      <div class="t-row"><div class="t-time">7:30 AM</div><div class="t-content"><h4><a href="https://www.google.com/maps/search/?api=1&query=Trecaff%C3%A8+Via+dei+Due+Macelli+Rome" target="_blank" rel="noopener">Trecaffè</a></h4><p>Quick Roman café stop for espresso or cappuccino on the way toward Trevi; the kids can have a small pastry or drink if wanted.</p></div></div>
+      <div class="t-row"><div class="t-time">8:00–8:25 AM</div><div class="t-content"><h4><a href="https://www.google.com/maps/place/?q=place_id:ChIJ1UCDJ1NgLxMRtrsCzOHxdvY" target="_blank" rel="noopener">Trevi Fountain</a></h4><p>Photos and a short visit while the fountain area is still relatively quiet.</p></div></div>
+      <div class="t-row"><div class="t-time">8:45–9:05 AM</div><div class="t-content"><h4><a href="https://www.google.com/maps/place/?q=place_id:ChIJqUCGZ09gLxMRLM42IPpl0co" target="_blank" rel="noopener">Pantheon</a></h4><p>Enjoy Piazza della Rotonda and the Pantheon exterior; step inside only if the timing is easy.</p></div></div>
+      <div class="t-row"><div class="t-time">9:20–9:40 AM</div><div class="t-content"><h4><a href="https://www.google.com/maps/place/?q=place_id:ChIJPRydwYNgLxMRSjOCLlYkV6M" target="_blank" rel="noopener">Piazza Navona</a></h4><p>See the Fountain of the Four Rivers, Sant'Agnese in Agone and the long Baroque piazza.</p></div></div>
+      <div class="t-row"><div class="t-time">9:45–10:15 AM</div><div class="t-content"><h4><a href="https://www.google.com/maps/search/?api=1&query=Forno+Campo+de+Fiori+Rome" target="_blank" rel="noopener">Forno Campo de' Fiori</a></h4><p>Late bakery breakfast: pizza bianca/rossa, breads and baked sweets. Grab food and eat around the piazza — don't expect one table for eight.</p></div></div>
+      <div class="t-row"><div class="t-time">10:15–10:35 AM</div><div class="t-content"><h4>Campo de' Fiori</h4><p>Browse the morning market and surrounding streets. Keep this a short, lively stop rather than a major attraction.</p></div></div>
+      <div class="t-row"><div class="t-time">10:35–11:10 AM</div><div class="t-content"><h4><a href="https://www.google.com/maps/search/?api=1&query=Largo+di+Torre+Argentina+Rome" target="_blank" rel="noopener">Largo di Torre Argentina</a></h4><p>Walk over and see the Republican-era ruins and look for the famous cats. The cat sanctuary itself may not be open yet.</p></div></div>
+      <div class="t-row"><div class="t-time">11:10–11:50 AM</div><div class="t-content"><h4>Jewish Ghetto</h4><p>Walk Piazza Mattei and the Turtle Fountain, Via della Reginella, Portico d'Ottavia and the Theatre of Marcellus.</p></div></div>
+      <div class="t-row"><div class="t-time">~11:50 AM</div><div class="t-content"><h4>Walk toward Ancient Rome</h4><p>Continue via the Capitoline/Piazza Venezia area and the Imperial Forums — sightseeing and transportation at the same time.</p></div></div>
+      <div class="t-row"><div class="t-time">~12:20 PM</div><div class="t-content"><h4>Quick lunch</h4><p><a href="https://www.google.com/maps/search/?api=1&query=La+Prezzemolina+Rome" target="_blank" rel="noopener">La Prezzemolina</a> near the Colosseum — pizza al taglio, supplì/fritti, lasagna, salads. Keep lunch quick so the group has plenty of buffer before the 2:15 PM tour.</p></div></div>
+      <div class="t-row"><div class="t-time">1:00–1:40 PM</div><div class="t-content"><h4>Tour prep</h4><p>Bathrooms, water, coffee if wanted, then walk to the confirmed Walks meeting point. Aim to be there around 1:40 PM.</p></div></div>
+      <div class="t-row"><div class="t-time">2:15–5:15 PM</div><div class="t-content"><h4><a href="https://www.takewalks.com/rome-tours/rome-colosseum-tour/" target="_blank" rel="noopener">Walks Ancient Rome tour</a><a class="geo-link" href="https://www.google.com/maps/place/?q=place_id:ChIJrRMgU7ZhLxMRxAOFkC7I8Sg" target="_blank" rel="noopener">map</a></h4><p>Confirmed guided tour of the Colosseum, Roman Forum and Palatine Hill. The tour ends at Palatine Hill; carry government-issued ID if required.</p></div></div>
+      <div class="t-row"><div class="t-time">5:15–5:45 PM</div><div class="t-content"><h4>Exit + taxis to Trastevere</h4><p>Exit with the guide, regroup, then split into two taxis for Trastevere if that's easiest for the group.</p></div></div>
+      <div class="t-row"><div class="t-time">5:45–6:15 PM</div><div class="t-content"><h4><a href="https://www.google.com/maps/search/?api=1&query=Piazza+Trilussa+Rome" target="_blank" rel="noopener">Piazza Trilussa</a> + Ponte Sisto</h4><p>Start the evening along the river and use this as a relaxed reset after the archaeological tour.</p></div></div>
+      <div class="t-row"><div class="t-time">6:15–6:45 PM</div><div class="t-content"><h4>Trastevere lanes</h4><p>Wander Via del Moro, Vicolo del Cinque, Via della Scala and nearby lanes without forcing a rigid route.</p></div></div>
+      <div class="t-row"><div class="t-time">6:45–7:15 PM</div><div class="t-content"><h4><a href="https://www.google.com/maps/search/?api=1&query=Santa+Maria+in+Trastevere" target="_blank" rel="noopener">Santa Maria in Trastevere</a></h4><p>Enjoy the piazza and step into the basilica if open and convenient.</p></div></div>
+      <div class="t-row"><div class="t-time">7:15–7:45 PM</div><div class="t-content"><h4>Aperitivo / wander</h4><p>Keep this flexible: drinks, a short gelato stop, people-watching or simply more wandering before dinner.</p></div></div>
+      <div class="t-row"><div class="t-time">8:00 PM</div><div class="t-content"><h4><a href="https://www.google.com/maps/search/?api=1&query=Ditta+Trinchetti+Via+della+Lungaretta+76+Rome" target="_blank" rel="noopener">Ditta Trinchetti</a> — Confirmed</h4><p>Reserved dinner for all 8 at Via della Lungaretta 76. After dinner, enjoy Trastevere after dark, then split into two taxis back to Via Bocca di Leone.</p></div></div>
     </div>
 
     <div class="notes">
-      <div class="eyebrow">Raffa Notes</div>
+      <div class="eyebrow">Confirmed Anchors</div>
       <ul>
-        <li>Wear the best walking shoes you own.</li>
-        <li>Carry refillable bottles and use Rome's public drinking fountains.</li>
-        <li>A taxi between Piazza Navona and Trastevere may be worthwhile by evening.</li>
+        <li>Walks Ancient Rome tour, 2:15–5:15 PM, ending at Palatine Hill; Ditta Trinchetti dinner, 8:00 PM, reserved for all 8. The rest of Friday should protect those two times.</li>
+      </ul>
+    </div>
+
+    <div class="notes choices">
+      <div class="eyebrow">Friday Route Notes</div>
+      <ul>
+        <li>Keep the café stop at Trecaffè brief — Forno Campo de' Fiori is the real late breakfast, bakery-style grab-and-go, so the group can eat in or around the piazza rather than expecting one table for eight.</li>
+        <li>Lunch stays intentionally quick: La Prezzemolina is the sole planned Friday lunch stop before the Ancient Rome tour.</li>
+        <li>The Ancient Rome tour ends at Palatine Hill. Regroup after the tour and use two taxis to Trastevere if convenient.</li>
+        <li>Trastevere route: Piazza Trilussa / Ponte Sisto → neighborhood lanes → Santa Maria in Trastevere → dinner.</li>
       </ul>
     </div>
   </div>
 </section>
 
-<!-- SATURDAY -->
+<!-- SATURDAY: VATICAN -->
 <section class="day" id="day-sat" style="--accent:var(--c-vatican)">
   <div class="reveal">
+    <div class="day-banner">
+      <svg viewBox="0 0 1200 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <rect width="1200" height="200" fill="#EFE6D2"/>
+        <g fill="#8A6A22" opacity="0.5">
+          <circle cx="130" cy="185" r="7"/><rect x="126" y="120" width="8" height="65"/>
+          <circle cx="190" cy="185" r="7"/><rect x="186" y="110" width="8" height="75"/>
+          <circle cx="250" cy="185" r="7"/><rect x="246" y="100" width="8" height="85"/>
+          <circle cx="310" cy="185" r="7"/><rect x="306" y="92" width="8" height="93"/>
+          <circle cx="890" cy="185" r="7"/><rect x="886" y="92" width="8" height="93"/>
+          <circle cx="950" cy="185" r="7"/><rect x="946" y="100" width="8" height="85"/>
+          <circle cx="1010" cy="185" r="7"/><rect x="1006" y="110" width="8" height="75"/>
+          <circle cx="1070" cy="185" r="7"/><rect x="1066" y="120" width="8" height="65"/>
+        </g>
+        <g fill="#8A6A22">
+          <rect x="560" y="95" width="80" height="90"/>
+          <path d="M560,95 Q600,15 640,95 Z"/>
+          <rect x="592" y="0" width="16" height="20"/>
+          <circle cx="600" cy="-4" r="5"/>
+        </g>
+        <rect x="595" y="185" width="10" height="15" fill="#8A6A22" opacity="0.7"/>
+        <rect x="0" y="196" width="1200" height="4" fill="#8A6A22" opacity="0.4"/>
+      </svg>
+    </div>
     <div class="day-head">
       <span class="day-num">06</span>
-      <h2>Vatican City &amp; Final Rome Evening</h2>
+      <h2>Vatican City, Villa Borghese &amp; Early Farewell Dinner</h2>
     </div>
     <div class="day-sub">Saturday, September 12 <span class="base-pill">Base: Rome</span></div>
-    <p style="margin-top:1rem; color:var(--ink-soft); max-width:60ch;">A second packed day anchored by the Vatican, followed by food-focused neighborhoods.</p>
+    <p style="margin-top:1rem; color:var(--ink-soft); max-width:60ch;">Confirmed Vatican tour, Villa Borghese in the afternoon, and Sgarro Bistrot for dinner — lunch is takeaway from Scialla, so seating isn't a concern.</p>
 
     <div class="timeline">
-      <div class="t-row"><div class="t-time">7:15 AM</div><div class="t-content"><h4>Breakfast and depart</h4><p>Arrive early enough to clear security before the first major crowds.</p></div></div>
-      <div class="t-row"><div class="t-time">8:00 AM</div><div class="t-content"><h4>Vatican Museums</h4><p>Reserve the earliest practical entry. Focus on the major galleries and the Sistine Chapel rather than trying to see every room.</p></div></div>
-      <div class="t-row"><div class="t-time">11:00 AM</div><div class="t-content"><h4>St. Peter's Basilica</h4><p>Walk through the basilica and allow time for security. Dress codes apply.</p></div></div>
-      <div class="t-row"><div class="t-time">12:15 PM</div><div class="t-content"><h4>Optional dome climb</h4><p>Choose this only if the kids still have energy for stairs and enclosed spaces. Otherwise enjoy St. Peter's Square.</p></div></div>
-      <div class="t-row"><div class="t-time">1:30 PM</div><div class="t-content"><h4>Lunch near the Vatican</h4><p>Pick a well-reviewed restaurant a few blocks away from the main tourist corridor.</p></div></div>
-      <div class="t-row"><div class="t-time">3:00 PM</div><div class="t-content"><h4>Castel Sant'Angelo</h4><p>Tour the fortress or simply enjoy the exterior and riverfront depending on energy.</p></div></div>
-      <div class="t-row"><div class="t-time">4:30 PM</div><div class="t-content"><h4>Ponte Sant'Angelo and Campo de' Fiori</h4><p>Cross the bridge and continue through the historic streets toward the market square.</p></div></div>
-      <div class="t-row"><div class="t-time">6:00 PM</div><div class="t-content"><h4>Jewish Ghetto</h4><p>Explore the neighborhood and try Roman-Jewish specialties. Fried artichokes are seasonal.</p></div></div>
-      <div class="t-row"><div class="t-time">7:30 PM</div><div class="t-content"><h4>Final dinner</h4><p>Reserve a memorable final meal near the Jewish Ghetto, Campo de' Fiori or your accommodations.</p></div></div>
+      <div class="t-row"><div class="t-time">8:00 AM</div><div class="t-content"><h4>Breakfast</h4><p>Relaxed breakfast near Via Bocca di Leone. Keep it simple before the Vatican.</p></div></div>
+      <div class="t-row"><div class="t-time">9:15 AM</div><div class="t-content"><h4>Taxi to Vatican area</h4><p>Split into two taxis if easiest. Allow time for traffic, restrooms and finding the Walks meeting point.</p></div></div>
+      <div class="t-row"><div class="t-time">9:45 AM</div><div class="t-content"><h4>Check in</h4><p>Arrive approximately 30 minutes before the tour and regroup before entry.</p></div></div>
+      <div class="t-row"><div class="t-time">10:15 AM–1:15 PM</div><div class="t-content"><h4><a href="https://www.takewalks.com/rome-tours/complete-vatican-tour/" target="_blank" rel="noopener">Walks Complete Vatican Tour</a><a class="geo-link" href="https://www.google.com/maps/place/?q=place_id:ChIJKcGbg2NgLxMRthZkUqDs4M8" target="_blank" rel="noopener">map</a></h4><p>Confirmed: Vatican Museums, major galleries, Sistine Chapel and St. Peter's Basilica when access conditions allow.</p></div></div>
+      <div class="t-row"><div class="t-time">~1:30 PM</div><div class="t-content"><h4>Takeaway from <a href="https://www.google.com/maps/search/?api=1&query=Scialla+the+Original+Streetfood+Vicolo+del+Farinone+27+Rome" target="_blank" rel="noopener">Scialla</a></h4><p>Scialla the Original Streetfood, Vicolo del Farinone 27 in Borgo. Roman pizza/pinsa, pasta and tiramisù to go — no need to worry about seating for all 8.</p></div></div>
+      <div class="t-row"><div class="t-time">~2:20 PM</div><div class="t-content"><h4>Optional <a href="https://www.google.com/maps/place/?q=place_id:ChIJ0aTnEYeKJRMRiUF95xwRbDY" target="_blank" rel="noopener">Castel Sant'Angelo</a> exterior</h4><p>If timing and energy are good, spend about 20 minutes at Castel Sant'Angelo and Ponte Sant'Angelo for photos only. Skip this without hesitation if lunch runs long.</p></div></div>
+      <div class="t-row"><div class="t-time">~2:45 PM</div><div class="t-content"><h4>Taxi to Villa Borghese</h4><p>Split into two taxis and head to the central/eastern side of the park so the afternoon can flow toward Pincio.</p></div></div>
+      <div class="t-row"><div class="t-time">3:00–3:40 PM</div><div class="t-content"><h4><a href="https://www.google.com/maps/search/?api=1&query=Piazza+di+Siena+Villa+Borghese+Rome" target="_blank" rel="noopener">Piazza di Siena</a> + reset</h4><p>Unstructured park time: sit, walk, snack and give the kids room to run after the Vatican.</p></div></div>
+      <div class="t-row"><div class="t-time">3:40–4:30 PM</div><div class="t-content"><h4>Lake + Temple of Aesculapius</h4><p>Walk around the lake and rent rowboats if they are operating and the wait is reasonable.</p></div></div>
+      <div class="t-row"><div class="t-time">4:30–5:00 PM</div><div class="t-content"><h4>Flexible Villa Borghese hour</h4><p>Choose shaded avenues, fountains, a pedal/rickshaw rental or simply more free play. Skip Bioparco and Galleria Borghese on this trip.</p></div></div>
+      <div class="t-row"><div class="t-time">5:00–5:25 PM</div><div class="t-content"><h4><a href="https://www.google.com/maps/search/?api=1&query=Pincio+Terrace+Rome" target="_blank" rel="noopener">Pincio Terrace</a></h4><p>Finish the park at the Pincio overlook for the panorama over Piazza del Popolo and Rome. Don't wait for sunset because of the early dinner.</p></div></div>
+      <div class="t-row"><div class="t-time">5:25–5:55 PM</div><div class="t-content"><h4>Head toward dinner</h4><p>Walk toward the Spanish Steps / Via Belsiana area, using taxis only if the group prefers to save energy.</p></div></div>
+      <div class="t-row"><div class="t-time">6:00 PM</div><div class="t-content"><h4><a href="https://www.google.com/maps/search/?api=1&query=Sgarro+Bistrot+Via+Belsiana+14+Rome" target="_blank" rel="noopener">Sgarro Bistrot</a> — Confirmed</h4><p>Early dinner at Sgarro Bistrot, Via Belsiana 14, reserved for all 8.</p></div></div>
+      <div class="t-row"><div class="t-time">After dinner</div><div class="t-content"><h4>Back to the Airbnb + pack</h4><p>Walk back to Via Bocca di Leone 32. Pack luggage, set out Sunday travel clothes, charge devices and confirm the airport-transfer plan.</p></div></div>
+    </div>
+
+    <div class="notes choices">
+      <div class="eyebrow">Saturday Checkpoints</div>
+      <ul>
+        <li>Scialla lunch: takeaway from Vicolo del Farinone 27 around 1:30 PM — no need to worry about seating for all 8.</li>
+        <li>Castel Sant'Angelo is exterior-only and optional; cap it at about 20 minutes so Villa Borghese stays the priority.</li>
+        <li>Villa Borghese priorities: Piazza di Siena, lake/rowboats, free exploration and the Pincio Terrace. Skip Bioparco and Galleria Borghese this afternoon — both deserve more time than this schedule allows.</li>
+        <li>Sgarro Bistrot is confirmed for 6:00 PM at Via Belsiana 14, reserved for all 8.</li>
+      </ul>
     </div>
 
     <div class="notes">
-      <div class="eyebrow">Raffa Notes</div>
+      <div class="eyebrow">Tour Note</div>
       <ul>
-        <li>The Vatican is easier with a guide who can keep children engaged and navigate the museum efficiently.</li>
-        <li>Should the family be exhausted, skip the dome and tour Castel Sant'Angelo only from the outside.</li>
+        <li>The Sistine Chapel is included. Access from the museums to St. Peter's Basilica can change because of Vatican operations, ceremonies, or security.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- SUNDAY: DEPARTURE -->
+<section class="day" id="day-sun" style="--accent:var(--c-depart)">
+  <div class="reveal">
+    <div class="day-banner">
+      <svg viewBox="0 0 1200 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <defs>
+          <linearGradient id="skyDepart" x1="0" y1="1" x2="0" y2="0">
+            <stop offset="0" stop-color="#7A4A55"/>
+            <stop offset="1" stop-color="#E7C7A9"/>
+          </linearGradient>
+        </defs>
+        <rect width="1200" height="200" fill="url(#skyDepart)"/>
+        <circle cx="200" cy="170" r="40" fill="#F1E9D8" opacity="0.5"/>
+        <path d="M300,190 L700,60" stroke="#F1E9D8" stroke-width="2" stroke-dasharray="8 8" opacity="0.6"/>
+        <polygon points="700,60 676,66 690,78 706,80" fill="#F1E9D8" opacity="0.95"/>
+        <g fill="#F1E9D8" opacity="0.85">
+          <rect x="960" y="150" width="60" height="42" rx="6"/>
+          <rect x="972" y="132" width="20" height="20" rx="4"/>
+          <rect x="985" y="120" width="4" height="16"/>
+        </g>
+      </svg>
+    </div>
+    <div class="day-head">
+      <span class="day-num">07</span>
+      <h2>Early Departure</h2>
+    </div>
+    <div class="day-sub">Sunday, September 13 <span class="base-pill">Base: Rome</span><span class="tbd-pill">Airport transfer TBD</span></div>
+    <p style="margin-top:1rem; color:var(--ink-soft); max-width:60ch;">Flight home is confirmed: UA 885, FCO to IAD. Only the airport transfer still needs arranging.</p>
+
+    <div class="timeline">
+      <div class="t-row"><div class="t-time">~5:30 AM</div><div class="t-content"><h4>Wake &amp; final pack</h4><p>Finish packing, gather passports, medications and chargers.</p></div></div>
+      <div class="t-row"><div class="t-time">~5:45 AM</div><div class="t-content"><h4>Early checkout</h4><p>Check out of Via Bocca di Leone 32 and return keys.</p></div></div>
+      <div class="t-row"><div class="t-time">~6:00 AM</div><div class="t-content"><h4>Transfer to FCO</h4><p>Licensed taxis or a private transfer for all 8 plus luggage and any child-seat arrangements; allow time for Sunday-morning traffic.</p></div></div>
+      <div class="t-row"><div class="t-time">~7:00 AM</div><div class="t-content"><h4>Arrive FCO</h4><p>Check in and drop bags for UA 885. Aim to be at the airport about 3 hours before departure.</p></div></div>
+      <div class="t-row"><div class="t-time">~7:30 AM</div><div class="t-content"><h4>Security &amp; passport control</h4><p>Move as one group where possible, then find the gate.</p></div></div>
+      <div class="t-row"><div class="t-time">10:20 AM</div><div class="t-content"><h4>Depart FCO — UA 885</h4><p>Boeing 777-200, United Economy (W). Nonstop to Washington Dulles.</p></div></div>
+      <div class="t-row"><div class="t-time">2:15 PM</div><div class="t-content"><h4>Arrive IAD</h4><p>Washington, DC. Flight time approximately 9h 55m.</p></div></div>
+    </div>
+
+    <div class="notes">
+      <div class="eyebrow">Confirmed Flight — UA 885</div>
+      <ul>
+        <li>FCO → IAD, Sunday 9/13, departing 10:20 AM and arriving 2:15 PM; duration 9h 55m on a Boeing 777-200, United Economy (W).</li>
+        <li>Seats: 50L, 50K, 50J, 51L, 51K, 51G, 50G, 50F — all 8 travelers together across two adjacent rows.</li>
+      </ul>
+    </div>
+
+    <div class="notes">
+      <div class="eyebrow">Departure Checklist</div>
+      <ul>
+        <li>Prebook a licensed taxi or private transfer for the ~6:00 AM departure to FCO.</li>
+        <li>Ask the accommodation about early checkout and key return.</li>
+        <li>Pack the night before and keep passports, medications and chargers together.</li>
+        <li>Allow additional time for child-seat arrangements if using a private transfer.</li>
+      </ul>
+    </div>
+
+    <div class="notes tbd">
+      <div class="eyebrow">Open Item</div>
+      <ul>
+        <li>Book the airport transfer for all 8 plus luggage. Once that's arranged, Sunday is fully locked.</li>
       </ul>
     </div>
   </div>
@@ -662,31 +1410,31 @@
 
 <!-- LOGISTICS -->
 <section class="logistics" id="day-logistics">
-  <div class="eyebrow">Reservations &amp; travel notes</div>
-  <h2>Lock these in before you land</h2>
-  <div class="logistics-grid">
-    <div>
-      <h3>Book in advance</h3>
-      <ul>
-        <li>Accademia Gallery timed entry</li>
-        <li>Optional Duomo dome or bell tower climb</li>
-        <li>Family-friendly Tuscan farm / winery experience</li>
-        <li>Colosseum, Forum and Palatine Hill ticket</li>
-        <li>Vatican Museums timed entry</li>
-        <li>Selected dinners in Rome and Bologna</li>
-      </ul>
-    </div>
-    <div>
-      <h3>Daily family essentials</h3>
-      <ul>
-        <li>Refillable water bottles</li>
-        <li>Comfortable walking shoes</li>
-        <li>Lightweight daypack</li>
-        <li>Sun protection and compact umbrella</li>
-        <li>Kid snacks and a portable charger</li>
-        <li>A small buffer before every timed entry</li>
-      </ul>
-    </div>
+  <div class="eyebrow">Reservation tracker</div>
+  <h2>Where everything stands</h2>
+  <p class="lede">A running list of what's locked in, what still needs booking, and what's still open.</p>
+
+  <ul class="res-list">
+    <li class="res-item"><span class="status-pill status-done">Confirmed</span><div><h4>UA 884</h4><p>IAD to FCO; Sunday 9/6 at 5:35 PM, arriving Monday 9/7 at 8:15 AM.</p></div></li>
+    <li class="res-item"><span class="status-pill status-done">Confirmed</span><div><h4>Casa di Miei</h4><p>Via delle Sodera 6, Impruneta; Monday–Thursday.</p></div></li>
+    <li class="res-item"><span class="status-pill status-done">Confirmed</span><div><h4><a href="https://palagina.it" target="_blank" rel="noopener">Palagina</a></h4><p>Tuesday 10:00 AM wine and olive-oil experience; lunch confirmed immediately afterward.</p></div></li>
+    <li class="res-item"><span class="status-pill status-action">Reserve</span><div><h4><a href="https://www.bellavistaimpruneta.it" target="_blank" rel="noopener">Ristoro Bellavista</a></h4><p>Monday at 7:30 PM; reserve one table for 8.</p></div></li>
+    <li class="res-item"><span class="status-pill status-decide">Awaiting confirmation</span><div><h4><a href="https://www.osteriadelbricco.com" target="_blank" rel="noopener">Hostaria del Bricco</a></h4><p>Tuesday at 7:30 PM; message sent requesting a table for 8; Piazzale Michelangelo primary parking, Beccaria backup.</p></div></li>
+    <li class="res-item"><span class="status-pill status-decide">Awaiting confirmation</span><div><h4><a href="https://osteriaal15.eatbu.com/?lang=en" target="_blank" rel="noopener">Osteria Al 15</a></h4><p>Wednesday 7:30 PM; reached out requesting a table for 8, confirmation pending.</p></div></li>
+    <li class="res-item"><span class="status-pill status-done">Confirmed</span><div><h4><a href="https://www.galleriaaccademiafirenze.it/en/" target="_blank" rel="noopener">Galleria dell'Accademia</a></h4><p>Thursday 12:15 PM timed entry.</p></div></li>
+    <li class="res-item"><span class="status-pill status-done">Confirmed</span><div><h4>Florence → Rome train</h4><p>Thursday around 6:00 PM; add exact train number and seats.</p></div></li>
+    <li class="res-item"><span class="status-pill status-action">Plan</span><div><h4>Pasta Urbana</h4><p>Thursday around 8:00 PM, Via Belsiana 94; takeout back to the Airbnb rather than a sit-down meal.</p></div></li>
+    <li class="res-item"><span class="status-pill status-done">Confirmed</span><div><h4><a href="https://www.takewalks.com/rome-tours/rome-colosseum-tour/" target="_blank" rel="noopener">Walks Ancient Rome tour</a></h4><p>Friday 2:15–5:15 PM; Colosseum, Roman Forum and Palatine Hill; ends at Palatine Hill.</p></div></li>
+    <li class="res-item"><span class="status-pill status-done">Confirmed</span><div><h4>Ditta Trinchetti</h4><p>Friday 8:00 PM in Trastevere, Via della Lungaretta 76; reserved for all 8.</p></div></li>
+    <li class="res-item"><span class="status-pill status-done">Confirmed</span><div><h4><a href="https://www.takewalks.com/rome-tours/complete-vatican-tour/" target="_blank" rel="noopener">Walks Complete Vatican Tour</a></h4><p>Saturday 10:15 AM–1:15 PM.</p></div></li>
+    <li class="res-item"><span class="status-pill status-done">Confirmed</span><div><h4>Sgarro Bistrot</h4><p>Saturday 6:00 PM, Via Belsiana 14; early farewell dinner reserved for all 8.</p></div></li>
+    <li class="res-item"><span class="status-pill status-done">Confirmed</span><div><h4>UA 885</h4><p>FCO to IAD; Sunday 9/13 at 10:20 AM, arriving 2:15 PM. Seats 50L, 50K, 50J, 51L, 51K, 51G, 50G, 50F.</p></div></li>
+    <li class="res-item"><span class="status-pill status-action">Book</span><div><h4>Sunday airport transfer</h4><p>Arrange taxis or a private transfer from Via Bocca di Leone to FCO for ~6:00 AM.</p></div></li>
+  </ul>
+
+  <div class="flex-note">
+    <div class="eyebrow">Version 2.5 note</div>
+    <p>Monday through Saturday are now locked in detail, right down to Villa Borghese pacing and taxi splits. Sgarro Bistrot on Saturday is confirmed, and the Scialla lunch is takeaway so seating isn't a concern. Pasta Urbana on Thursday night is a takeout plan rather than a sit-down booking. The flight home, UA 885, is confirmed for all 8 travelers; only the Sunday airport transfer remains open.</p>
   </div>
 </section>
 
@@ -708,8 +1456,9 @@
   <p>Eat well · Walk far · Take the picture</p>
 </footer>
 
+</div><!-- /#site-content -->
+
 <script>
-  // Departure board navigation
   const cells = document.querySelectorAll('.board-cell');
   const sections = Array.from(cells).map(c => document.querySelector(c.dataset.target));
 
@@ -736,7 +1485,6 @@
     sections.forEach(s => { if(s) obs.observe(s); });
   }
 
-  // Reveal on scroll
   const reveals = document.querySelectorAll('.reveal');
   if('IntersectionObserver' in window){
     const revealObs = new IntersectionObserver((entries) => {
@@ -751,6 +1499,166 @@
   } else {
     reveals.forEach(r => r.classList.add('is-visible'));
   }
+</script>
+
+<script>
+  const TRIPMAP_ACCENTS = {
+    mon:'#57697A', tue:'#66703F', wed:'#AE4A2C', thu:'#B7912A', fri:'#9A3B24', sat:'#8A6A22'
+  };
+  const TRIPMAP_MARKERS = [
+    {day:'mon', time:'3:15 PM', title:'Piazza Buondelmonti', desc:'Explore Impruneta\u2019s main square.', lat:43.685661, lng:11.2543519},
+    {day:'mon', time:'', title:'Basilica di Santa Maria', desc:'Step inside if open.', lat:43.685258, lng:11.2550736},
+    {day:'mon', time:'4:15 PM', title:'Coop Impruneta', desc:'First-night groceries.', lat:43.6840297, lng:11.2519121},
+    {day:'mon', time:'5:00 PM', title:'Casa di Miei', desc:'Check in, unpack, breathe.', lat:43.6764302, lng:11.2635452},
+    {day:'mon', time:'7:30 PM', title:'Ristoro Bellavista', desc:'Dinner \u2014 request a highchair.', lat:43.6849363, lng:11.2540278, url:'https://www.bellavistaimpruneta.it'},
+    {day:'tue', time:'10:00 AM', title:'Palagina', desc:'Wine and olive-oil tour.', lat:43.60929, lng:11.419555, url:'https://palagina.it'},
+    {day:'tue', time:'2:15 PM', title:'Montefioralle', desc:'Medieval village loop.', lat:43.5808099, lng:11.3030483},
+    {day:'tue', time:'3:30 PM', title:'Greve in Chianti', desc:'Piazza Matteotti, Falorni.', lat:43.5825767, lng:11.3189625},
+    {day:'tue', time:'6:45 PM', title:'Piazzale Michelangelo', desc:'Sunset over Florence.', lat:43.7629314, lng:11.2650561},
+    {day:'tue', time:'7:30 PM', title:'Hostaria del Bricco', desc:'Dinner in San Niccol\u00f2 \u2014 awaiting confirmation.', lat:43.7645342, lng:11.2635777, url:'https://www.osteriadelbricco.com'},
+    {day:'wed', time:'8:30 AM', title:'Parcheggio Ex-Staveco', desc:'Park outside the ZTL.', lat:44.4857057, lng:11.3444605},
+    {day:'wed', time:'9:00 AM', title:'Piazza Santo Stefano', desc:'Seven Churches complex.', lat:44.4922731, lng:11.3482658},
+    {day:'wed', time:'11:30 AM', title:'Sfoglia Rina', desc:'Handmade pasta lunch.', lat:44.4931954, lng:11.3462672, url:'https://www.sfogliarina.it/en/'},
+    {day:'wed', time:'12:30 PM', title:'Piazza Maggiore', desc:'San Petronio, Neptune.', lat:44.493945, lng:11.3432071},
+    {day:'wed', time:'1:30 PM', title:'Biblioteca Salaborsa', desc:'Indoor recharge.', lat:44.4946348, lng:11.3419323},
+    {day:'wed', time:'5:30 PM', title:'Giardini Margherita', desc:'Outdoor recharge.', lat:44.4827156, lng:11.3524117},
+    {day:'wed', time:'7:30 PM', title:'Osteria Al 15', desc:'Traditional Bolognese dinner \u2014 awaiting confirmation.', lat:44.4873483, lng:11.3410972, url:'https://osteriaal15.eatbu.com/?lang=en'},
+    {day:'thu', time:'7:30 AM', title:'Florence Airport (FLR)', desc:'Return the rental car.', lat:43.8094619, lng:11.2027587},
+    {day:'thu', time:'', title:'Firenze Santa Maria Novella', desc:'Store luggage.', lat:43.7766715, lng:11.2479159},
+    {day:'thu', time:'9:00 AM', title:'Piazza del Duomo', desc:'Cathedral exterior.', lat:43.7730912, lng:11.2554649},
+    {day:'thu', time:'12:15 PM', title:'Galleria dell\u2019Accademia', desc:'Michelangelo\u2019s David.', lat:43.7768145, lng:11.2586424, url:'https://www.galleriaaccademiafirenze.it/en/'},
+    {day:'thu', time:'1:30 PM', title:'Ponte Vecchio', desc:'Arno views.', lat:43.767925, lng:11.2531435},
+    {day:'thu', time:'6:00 PM', title:'Roma Termini', desc:'Arrive by high-speed rail.', lat:41.9012873, lng:12.5015756},
+    {day:'thu', time:'8:00 PM', title:'Pasta Urbana', desc:'Takeout back to the Airbnb.', lat:41.9047, lng:12.4802, url:'https://www.google.com/maps/search/?api=1&query=Pasta+Urbana+Via+Belsiana+94+Rome'},
+    {day:'fri', time:'7:00 AM', title:'Spanish Steps', desc:'Fontana della Barcaccia at sunrise.', lat:41.9058358, lng:12.4823274},
+    {day:'fri', time:'8:00 AM', title:'Trevi Fountain', desc:'Photos while it\u2019s still quiet.', lat:41.9009325, lng:12.483313},
+    {day:'fri', time:'8:45 AM', title:'Pantheon', desc:'Piazza della Rotonda.', lat:41.8986108, lng:12.4768729},
+    {day:'fri', time:'9:20 AM', title:'Piazza Navona', desc:'Fountain of the Four Rivers.', lat:41.8991633, lng:12.4730742},
+    {day:'fri', time:'9:45 AM', title:'Forno Campo de\u2019 Fiori', desc:'Late bakery breakfast.', lat:41.8955764, lng:12.4723445},
+    {day:'fri', time:'10:35 AM', title:'Largo di Torre Argentina', desc:'Republican-era ruins + cats.', lat:41.8956547, lng:12.4776168},
+    {day:'fri', time:'11:10 AM', title:'Jewish Ghetto', desc:'Turtle Fountain, Portico d\u2019Ottavia.', lat:41.8925799, lng:12.4776626},
+    {day:'fri', time:'2:15 PM', title:'Colosseum', desc:'Walks Ancient Rome tour.', lat:41.8902102, lng:12.4922309, url:'https://www.takewalks.com/rome-tours/rome-colosseum-tour/'},
+    {day:'fri', time:'5:45 PM', title:'Piazza Trilussa', desc:'Trastevere reset by the river.', lat:41.8901221, lng:12.4692774},
+    {day:'fri', time:'6:45 PM', title:'Santa Maria in Trastevere', desc:'Basilica + piazza.', lat:41.8892238, lng:12.4696163},
+    {day:'fri', time:'8:00 PM', title:'Ditta Trinchetti', desc:'Confirmed dinner for all 8.', lat:41.8886, lng:12.4700, url:'https://www.google.com/maps/search/?api=1&query=Ditta+Trinchetti+Via+della+Lungaretta+76+Rome'},
+    {day:'sat', time:'10:15 AM', title:'Vatican Museums', desc:'Complete Vatican Tour.', lat:41.9064878, lng:12.4536413, url:'https://www.takewalks.com/rome-tours/complete-vatican-tour/'},
+    {day:'sat', time:'1:30 PM', title:'Scialla', desc:'Takeaway streetfood lunch.', lat:41.9028, lng:12.4577, url:'https://www.google.com/maps/search/?api=1&query=Scialla+the+Original+Streetfood+Vicolo+del+Farinone+27+Rome'},
+    {day:'sat', time:'2:20 PM', title:'Castel Sant\u2019Angelo', desc:'Optional exterior photo stop.', lat:41.9030632, lng:12.466276},
+    {day:'sat', time:'3:00 PM', title:'Piazza di Siena', desc:'Villa Borghese reset.', lat:41.9166, lng:12.4859},
+    {day:'sat', time:'3:40 PM', title:'Villa Borghese Lake', desc:'Rowboats if operating.', lat:41.9139, lng:12.4841},
+    {day:'sat', time:'5:00 PM', title:'Pincio Terrace', desc:'Panorama over Piazza del Popolo.', lat:41.9098, lng:12.4779},
+    {day:'sat', time:'6:00 PM', title:'Sgarro Bistrot', desc:'Confirmed early dinner.', lat:41.9053, lng:12.4805, url:'https://www.google.com/maps/search/?api=1&query=Sgarro+Bistrot+Via+Belsiana+14+Rome'}
+  ];
+
+  let tripMap = null;
+  let tripMapLayers = {};
+  let tripMapInitialized = false;
+
+  function initTripMap(){
+    if(tripMapInitialized) return;
+    tripMapInitialized = true;
+
+    tripMap = L.map('trip-map', {scrollWheelZoom:false});
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom:19,
+      attribution:'&copy; OpenStreetMap contributors'
+    }).addTo(tripMap);
+
+    const allBoundsPoints = [];
+
+    Object.keys(TRIPMAP_ACCENTS).forEach(dayKey => {
+      const group = L.layerGroup();
+      const dayMarkers = TRIPMAP_MARKERS.filter(m => m.day === dayKey);
+      const accent = TRIPMAP_ACCENTS[dayKey];
+      const linePoints = [];
+
+      dayMarkers.forEach(m => {
+        const marker = L.circleMarker([m.lat, m.lng], {
+          radius:8,
+          weight:2,
+          color:'#FBF6E9',
+          fillColor:accent,
+          fillOpacity:0.95
+        });
+        const linkHtml = m.url ? `<div class="lp-link"><a href="${m.url}" target="_blank" rel="noopener">Visit site</a></div>` : '';
+        const timeHtml = m.time ? `<div class="lp-time">${m.time}</div>` : '';
+        marker.bindPopup(
+          `<div class="lp-day" style="--lp-accent:${accent}">${dayKey.toUpperCase()}</div>` +
+          timeHtml +
+          `<div class="lp-title">${m.title}</div>` +
+          `<div class="lp-desc">${m.desc}</div>` +
+          linkHtml
+        );
+        group.addLayer(marker);
+        linePoints.push([m.lat, m.lng]);
+        allBoundsPoints.push([m.lat, m.lng]);
+      });
+
+      const line = L.polyline(linePoints, {color:accent, weight:2, opacity:0.55, dashArray:'2 8'});
+      group.addLayer(line);
+
+      tripMapLayers[dayKey] = group;
+      group.addTo(tripMap);
+    });
+
+    tripMap.fitBounds(allBoundsPoints, {padding:[24,24]});
+
+    const filterButtons = document.querySelectorAll('.tripmap-filter');
+    filterButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const chosen = btn.dataset.day;
+
+        Object.keys(tripMapLayers).forEach(dayKey => {
+          tripMap.removeLayer(tripMapLayers[dayKey]);
+        });
+
+        if(chosen === 'all'){
+          Object.keys(tripMapLayers).forEach(dayKey => tripMapLayers[dayKey].addTo(tripMap));
+          tripMap.fitBounds(allBoundsPoints, {padding:[24,24]});
+        } else {
+          tripMapLayers[chosen].addTo(tripMap);
+          const pts = TRIPMAP_MARKERS.filter(m => m.day === chosen).map(m => [m.lat, m.lng]);
+          tripMap.fitBounds(pts, {padding:[40,40]});
+        }
+      });
+    });
+
+    setTimeout(() => { if(tripMap) tripMap.invalidateSize(); }, 200);
+  }
+</script>
+
+<script>
+  (function(){
+    const PASSCODE = "CRAZY2026";
+    const body = document.body;
+    const form = document.getElementById('lock-form');
+    const input = document.getElementById('lock-input');
+    const error = document.getElementById('lock-error');
+    const lockScreen = document.getElementById('lock-screen');
+
+    if(sessionStorage.getItem('raffa-unlocked') === 'true'){
+      body.classList.remove('locked');
+      lockScreen.style.display = 'none';
+      initTripMap();
+    }
+
+    form.addEventListener('submit', function(e){
+      e.preventDefault();
+      const entered = input.value.trim().toUpperCase();
+      if(entered === PASSCODE){
+        sessionStorage.setItem('raffa-unlocked', 'true');
+        body.classList.remove('locked');
+        lockScreen.style.display = 'none';
+        initTripMap();
+      } else {
+        error.textContent = "That's not quite it — try again.";
+        input.value = '';
+        input.focus();
+      }
+    });
+  })();
 </script>
 
 </body>
